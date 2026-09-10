@@ -1,0 +1,208 @@
+# hashgram.io — Caddy in front of the explorer VPS.
+#
+#   /api/*  → hashgram-indexer on 127.0.0.1:1318 (prefix stripped)
+#   /*      → the static SolidJS build in /var/www/hashgram-io (SPA fallback)
+#   www     → 308 to the apex
+#
+# The only thing the internet reaches on this host is this process on 80/443.
+# Node admin ports (26657, 1317, 9091, 26672, 1318, 5432) stay on loopback.
+#
+# Cloudflare sits in front of this origin (orange cloud). Set the zone's SSL
+# mode to "Full (strict)". Caddy obtains its own Let's Encrypt certificate
+# (HTTP-01 passes through Cloudflare; if "Always Use HTTPS" is enabled on the
+# zone, set CF_API_TOKEN in /etc/hashgram/caddy.env to switch to DNS-01 — see
+# the tls block below). Client IPs are taken from CF-Connecting-IP only when the
+# connection comes from Cloudflare's published ranges.
+#
+# Requires a Caddy build with these modules (scripts/install/install-hashgram-io.sh
+# downloads one): mholt/caddy-ratelimit, WeidiDeng/caddy-cloudflare-ip,
+# caddy-dns/cloudflare, caddyserver/replace-response.
+{
+	email {$ACME_EMAIL:ops@hashgram.io}
+	admin off
+	servers {
+		trusted_proxies cloudflare {
+			interval 12h
+			timeout 15s
+		}
+		client_ip_headers CF-Connecting-IP X-Forwarded-For
+		protocols h1 h2 h3
+	}
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 50MiB
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format filter {
+			wrap json
+			# docs/LOGGING_POLICY.md: never store a full visitor address.
+			fields {
+				request>remote_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>client_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>headers>Cf-Connecting-Ip delete
+				request>headers>X-Forwarded-For delete
+				request>headers>X-Real-Ip delete
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+				request>headers>Cf-Ray delete
+				request>headers>Cf-Ipcountry delete
+			}
+		}
+	}
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+		-Server
+		-X-Powered-By
+	}
+}
+
+www.hashgram.io {
+	import security_headers
+	redir https://hashgram.io{uri} 308
+}
+
+hashgram.io {
+	import security_headers
+	encode zstd gzip
+
+	# TLS: automatic Let's Encrypt via HTTP-01 by default. The installer drops
+	# /etc/caddy/conf.d/tls-dns.conf (DNS-01 through the Cloudflare API) when
+	# CF_API_TOKEN is present in /etc/hashgram/caddy.env — needed if the zone has
+	# "Always Use HTTPS" enabled, which breaks HTTP-01 at the edge.
+	import /etc/caddy/conf.d/*.conf
+
+	# Per-route Open Graph image for crawlers: the SPA ships one index.html with
+	# /og/default.png; rewrite it to the matching page image on the way out.
+	map {path} {og} {
+		~^/blocks blocks
+		~^/txs txs
+		~^/accounts accounts
+		~^/validators validators
+		~^/rewards rewards
+		~^/founder founder
+		~^/governance governance
+		~^/network network
+		~^/docs docs
+		~^/status status
+		~^/brand brand
+		default default
+	}
+
+	# ---------------------------------------------------------------- /api
+	handle_path /api/* {
+		request_body {
+			max_size 1KB
+		}
+
+		rate_limit {
+			# 300 requests per minute per client IP on the whole API. A page load of
+			# the SPA issues 6–10 requests and the polling fallback adds 10/min, so
+			# 60/min (the original figure) throttled ordinary browsing; 300 still
+			# stops scrapers cold.
+			zone api {
+				key {client_ip}
+				events 300
+				window 1m
+			}
+			# … and at most 30 stream (re)connections per minute per IP (each page
+			# navigation of a fresh tab opens one). The indexer additionally caps
+			# concurrent SSE connections per client IP at 10 and total clients at
+			# 2,000 (503 + Retry-After).
+			zone live {
+				match {
+					path /v1/live
+				}
+				key {client_ip}
+				events 30
+				window 1m
+			}
+		}
+
+		header {
+			# The API is read-only and same-origin; block cross-site embedding of JSON.
+			X-Robots-Tag "noindex"
+			-Server
+		}
+
+		reverse_proxy 127.0.0.1:1318 {
+			header_up Host {host}
+			# Server-Sent Events: never buffer, keep the connection open.
+			flush_interval -1
+			transport http {
+				dial_timeout 5s
+				response_header_timeout 30s
+				read_timeout 0
+				write_timeout 0
+			}
+		}
+	}
+
+	# ---------------------------------------------------------------- site
+	handle {
+		root * /var/www/hashgram-io
+
+		# Hashed assets and generated images are immutable; HTML is not cached.
+		@immutable path /assets/* /brand/* /og/* /docs-content/*
+		header @immutable Cache-Control "public, max-age=31536000, immutable"
+		@html {
+			not path /assets/* /brand/* /og/* /docs-content/*
+			not file
+		}
+		header @html Cache-Control "no-cache"
+		header /index.html Cache-Control "no-cache"
+
+		# SPA: unknown paths (including short links like /<tx hash>) get index.html
+		try_files {path} /index.html
+		@spa {
+			not path /assets/* /brand/* /og/* /docs-content/* /robots.txt /sitemap.xml /manifest.webmanifest
+		}
+		replace @spa "/og/default.png" "/og/{og}.png"
+		file_server {
+			precompressed zstd gzip br
+		}
+	}
+
+	log {
+		output file /var/log/caddy/hashgram.io.log {
+			roll_size 50MiB
+			roll_keep 10
+		}
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>client_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>headers>Cf-Connecting-Ip delete
+				request>headers>X-Forwarded-For delete
+				request>headers>X-Real-Ip delete
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+				request>headers>Cf-Ray delete
+				request>headers>Cf-Ipcountry delete
+			}
+		}
+	}
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://hashgram.io/</loc><changefreq>always</changefreq><priority>1.0</priority></url>
+  <url><loc>https://hashgram.io/blocks</loc><changefreq>always</changefreq></url>
+  <url><loc>https://hashgram.io/txs</loc><changefreq>always</changefreq></url>
+  <url><loc>https://hashgram.io/accounts</loc><changefreq>hourly</changefreq></url>
+  <url><loc>https://hashgram.io/validators</loc><changefreq>hourly</changefreq></url>
+  <url><loc>https://hashgram.io/rewards</loc><changefreq>hourly</changefreq></url>
+  <url><loc>https://hashgram.io/founder</loc><changefreq>hourly</changefreq></url>
+  <url><loc>https://hashgram.io/governance</loc><changefreq>hourly</changefreq></url>
+  <url><loc>https://hashgram.io/network</loc><changefreq>hourly</changefreq></url>
+  <url><loc>https://hashgram.io/docs</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://hashgram.io/docs/what-is-hashgram</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://hashgram.io/docs/run-a-node</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://hashgram.io/docs/api</loc><changefreq>weekly</changefreq></url>
+  <url><loc>https://hashgram.io/status</loc><changefreq>always</changefreq></url>
+  <url><loc>https://hashgram.io/brand</loc><changefreq>monthly</changefreq></url>
+</urlset>

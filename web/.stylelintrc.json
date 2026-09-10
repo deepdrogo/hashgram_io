@@ -1,0 +1,64 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "rules": {
+    "color-no-hex": [
+      true,
+      {
+        "severity": "error",
+        "message": "Use the seven palette tokens (var(--color-*)) \u2014 no raw hex outside @theme."
+      }
+    ],
+    "color-named": "never",
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla",
+      "oklch",
+      "oklab",
+      "lab",
+      "lch",
+      "color-mix"
+    ],
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "theme",
+          "layer",
+          "apply",
+          "utility",
+          "variant",
+          "source",
+          "plugin",
+          "custom-variant",
+          "reference",
+          "config"
+        ]
+      }
+    ],
+    "import-notation": null,
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "no-descending-specificity": null,
+    "property-no-vendor-prefix": null,
+    "font-family-name-quotes": null,
+    "value-keyword-case": null,
+    "comment-empty-line-before": null,
+    "color-hex-length": null,
+    "custom-property-empty-line-before": null
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/app.css"
+      ],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ]
+}

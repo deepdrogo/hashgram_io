@@ -1,0 +1,13 @@
+node_modules/
+web/dist/
+web/.lighthouseci/
+web/test-results/
+web/playwright-report/
+web/src/generated/
+web/public/brand/
+web/public/og/
+web/public/docs-content/
+web/public/manifest.webmanifest
+*.tsbuildinfo
+.env
+.env.*

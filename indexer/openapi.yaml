@@ -1,0 +1,1421 @@
+openapi: 3.1.0
+info:
+  title: Hashgram read API
+  version: 1.0.0
+  summary: Read-only explorer API served by hashgram-indexer from this host's own node.
+  description: |
+    Every value is derived from the local full node (CometBFT RPC, Cosmos REST,
+    hashgram-node API) and cached in PostgreSQL. `hashgram-indexer rebuild`
+    reproduces every response. Amounts are `uhash` integers encoded as decimal
+    **strings** (1 HASH = 1,000,000 uhash). Lists are paginated with `limit`
+    (max 100) and an opaque `cursor`. The API is read-only: no signing, no
+    broadcasting, no wallet.
+  license:
+    name: Apache-2.0
+servers:
+  - url: /api/v1
+    description: Same-origin via Caddy (hashgram.io)
+  - url: http://127.0.0.1:1318/v1
+    description: Direct, loopback only
+tags:
+  - name: chain
+  - name: blocks
+  - name: txs
+  - name: accounts
+  - name: validators
+  - name: rewards
+  - name: founder
+  - name: governance
+  - name: network
+  - name: live
+  - name: social
+
+paths:
+  /health:
+    get:
+      tags: [chain]
+      operationId: getHealth
+      summary: Indexer and node health
+      responses:
+        "200":
+          description: OK (also 200 when degraded, see `status`)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Health" }
+  /stats:
+    get:
+      tags: [chain]
+      operationId: getStats
+      summary: Legacy stats (kept for compatibility)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Stats" }
+  /stats/history:
+    get:
+      tags: [chain]
+      operationId: getStatsHistory
+      summary: Snapshots for sparklines
+      parameters:
+        - name: hours
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 168, default: 24 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/StatsSnapshot" }
+  /chain:
+    get:
+      tags: [chain]
+      operationId: getChain
+      summary: Chain summary (live head)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChainInfo" }
+  /search:
+    get:
+      tags: [chain]
+      operationId: search
+      summary: Resolve a height, hash, address, @username or peer id
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, maxLength: 256 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchResult" }
+
+  /blocks:
+    get:
+      tags: [blocks]
+      operationId: listBlocks
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BlockList" }
+  /blocks/latest:
+    get:
+      tags: [blocks]
+      operationId: getLatestBlock
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BlockDetail" }
+  /blocks/{height}:
+    get:
+      tags: [blocks]
+      operationId: getBlock
+      parameters:
+        - name: height
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BlockDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /txs:
+    get:
+      tags: [txs]
+      operationId: listTxs
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+        - name: type
+          in: query
+          description: Short message type, e.g. `Send`, `Delegate`, `RegisterProvider`
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string, enum: [success, failed] }
+        - name: signer
+          in: query
+          schema: { type: string }
+        - name: from_height
+          in: query
+          schema: { type: integer }
+        - name: to_height
+          in: query
+          schema: { type: integer }
+        - name: min_amount
+          in: query
+          description: Minimum uhash moved by the transaction's transfer events
+          schema: { type: string }
+        - name: max_amount
+          in: query
+          description: Maximum uhash moved by the transaction's transfer events
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TxList" }
+  /txs/types:
+    get:
+      tags: [txs]
+      operationId: listTxTypes
+      summary: Message types seen on chain with counts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [type, type_url, count]
+                      properties:
+                        type: { type: string }
+                        type_url: { type: string }
+                        count: { type: integer }
+  /txs/{hash}:
+    get:
+      tags: [txs]
+      operationId: getTx
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9A-Fa-f]{64}$" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TxDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /accounts/top:
+    get:
+      tags: [accounts]
+      operationId: listTopAccounts
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopAccounts" }
+  /accounts/count:
+    get:
+      tags: [accounts]
+      operationId: getAccountCount
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, height]
+                properties:
+                  count: { type: integer }
+                  height: { type: integer }
+  /accounts/{address}:
+    get:
+      tags: [accounts]
+      operationId: getAccount
+      parameters:
+        - $ref: "#/components/parameters/address"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /accounts/{address}/transactions:
+    get:
+      tags: [accounts]
+      operationId: listAccountTxs
+      parameters:
+        - $ref: "#/components/parameters/address"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TxList" }
+  /accounts/{address}/transfers:
+    get:
+      tags: [accounts]
+      operationId: listAccountTransfers
+      parameters:
+        - $ref: "#/components/parameters/address"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TransferList" }
+
+  /validators:
+    get:
+      tags: [validators]
+      operationId: listValidators
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, height, signed_blocks_window]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Validator" }
+                  height: { type: integer }
+                  signed_blocks_window: { type: integer }
+  /validators/{operator}:
+    get:
+      tags: [validators]
+      operationId: getValidator
+      parameters:
+        - name: operator
+          in: path
+          required: true
+          schema: { type: string, pattern: "^hashvaloper1[0-9a-z]{38}$" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidatorDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /staking:
+    get:
+      tags: [validators]
+      operationId: getStaking
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Staking" }
+
+  /rewards/params:
+    get:
+      tags: [rewards]
+      operationId: getRewardParams
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RewardParams" }
+  /rewards/reserve:
+    get:
+      tags: [rewards]
+      operationId: getRewardReserve
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RewardReserve" }
+  /rewards/epochs:
+    get:
+      tags: [rewards]
+      operationId: listEpochs
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, current]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Epoch" }
+                  current: { $ref: "#/components/schemas/CurrentEpoch" }
+                  next_cursor: { type: [string, "null"] }
+  /rewards/providers:
+    get:
+      tags: [rewards]
+      operationId: listProviders
+      parameters:
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Provider" }
+                  next_cursor: { type: [string, "null"] }
+  /rewards/providers/{operator}:
+    get:
+      tags: [rewards]
+      operationId: getProvider
+      parameters:
+        - name: operator
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProviderDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /rewards/welcome:
+    get:
+      tags: [rewards]
+      operationId: getWelcome
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Welcome" }
+
+  /founder:
+    get:
+      tags: [founder]
+      operationId: getFounder
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Founder" }
+  /fees:
+    get:
+      tags: [founder]
+      operationId: getFees
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Fees" }
+  /treasury:
+    get:
+      tags: [founder]
+      operationId: getTreasury
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Treasury" }
+
+  /gov/proposals:
+    get:
+      tags: [governance]
+      operationId: listProposals
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, params]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Proposal" }
+                  params: { $ref: "#/components/schemas/GovParams" }
+  /gov/proposals/{id}:
+    get:
+      tags: [governance]
+      operationId: getProposal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProposalDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /network:
+    get:
+      tags: [network]
+      operationId: getNetwork
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Network" }
+  /network/nodes:
+    get:
+      tags: [network]
+      operationId: getNetworkNodes
+      summary: Distinct nodes seen in 24 h, three separate numbers (never summed)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [consensus_peers, p2p_peers, validators]
+                properties:
+                  consensus_peers: { type: integer }
+                  p2p_peers: { type: integer }
+                  validators: { type: integer }
+
+  /live:
+    get:
+      tags: [live]
+      operationId: live
+      summary: Server-Sent Events stream
+      description: |
+        Events: `block` (BlockSummary), `tx` (TxSummary), `stats` (ChainInfo, every 10 s),
+        `epoch` (Epoch), `founder_payout` (Transfer), `proposal` (Proposal), `heartbeat`
+        (every 15 s). Max 2,000 concurrent clients; above that 503 with `Retry-After`.
+      responses:
+        "200":
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+        "503":
+          description: Too many clients
+          headers:
+            Retry-After: { schema: { type: integer } }
+
+  /openapi.yaml:
+    get:
+      tags: [chain]
+      operationId: getOpenApi
+      responses:
+        "200":
+          description: This document
+          content:
+            application/yaml:
+              schema: { type: string }
+  /docs:
+    get:
+      tags: [chain]
+      operationId: getDocs
+      responses:
+        "200":
+          description: Rendered API reference (monochrome)
+          content:
+            text/html:
+              schema: { type: string }
+
+components:
+  parameters:
+    limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    address:
+      name: address
+      in: path
+      required: true
+      schema: { type: string, pattern: "^hash1[0-9a-z]{38,58}$" }
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    Uhash:
+      type: string
+      pattern: "^-?[0-9]+$"
+      description: Integer amount in uhash (1 HASH = 1,000,000 uhash), as a decimal string.
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    Health:
+      type: object
+      required: [status, chain_height, indexed_height, lag_blocks, node_catching_up]
+      properties:
+        status: { type: string, enum: [ok, degraded, down] }
+        chain_height: { type: integer }
+        indexed_height: { type: integer }
+        lag_blocks: { type: integer }
+        node_catching_up: { type: boolean }
+        head_time: { type: string, format: date-time }
+        head_age_seconds: { type: number }
+        live_clients: { type: integer }
+        live_source: { type: string, enum: [websocket, polling, down] }
+        db_ok: { type: boolean }
+        version: { type: string }
+    Stats:
+      type: object
+      additionalProperties: true
+    StatsSnapshot:
+      type: object
+      required: [time, height]
+      properties:
+        time: { type: string, format: date-time }
+        height: { type: integer }
+        total_txs: { type: integer }
+        total_accounts: { type: integer }
+        bonded_uhash: { $ref: "#/components/schemas/Uhash" }
+        circulating_uhash: { $ref: "#/components/schemas/Uhash" }
+        validators: { type: integer }
+        consensus_peers: { type: integer }
+        p2p_peers: { type: integer }
+        providers: { type: integer }
+        block_time_ms: { type: number }
+        founder_accrued_uhash: { $ref: "#/components/schemas/Uhash" }
+        epoch: { type: integer }
+    ChainInfo:
+      type: object
+      required:
+        - chain_id
+        - genesis_hash
+        - height
+        - latest_block_time
+        - avg_block_time_ms
+        - total_supply_uhash
+        - circulating_uhash
+        - bonded_uhash
+        - validators
+        - total_txs
+        - total_accounts
+        - indexed_height
+      properties:
+        chain_id: { type: string }
+        network_id: { type: string }
+        genesis_hash: { type: string, description: "From the network.json pin in /etc/hashgram, never from RPC /genesis" }
+        genesis_time: { type: string, format: date-time }
+        height: { type: integer }
+        latest_block_hash: { type: string }
+        latest_block_time: { type: string, format: date-time }
+        avg_block_time_ms: { type: number, description: "Mean over the last 100 blocks" }
+        node_version: { type: string }
+        app_version: { type: string }
+        cometbft_version: { type: string }
+        validators:
+          type: object
+          required: [active, total, max]
+          properties:
+            active: { type: integer }
+            total: { type: integer }
+            max: { type: integer }
+        bonded_uhash: { $ref: "#/components/schemas/Uhash" }
+        total_supply_uhash: { $ref: "#/components/schemas/Uhash" }
+        circulating_uhash: { $ref: "#/components/schemas/Uhash" }
+        total_txs: { type: integer }
+        total_accounts: { type: integer }
+        providers: { type: integer }
+        consensus_peers: { type: integer }
+        p2p_peers: { type: integer }
+        indexed_height: { type: integer }
+        epoch: { $ref: "#/components/schemas/CurrentEpoch" }
+        founder_accrued_uhash: { $ref: "#/components/schemas/Uhash" }
+    SearchResult:
+      type: object
+      required: [type, id]
+      properties:
+        type: { type: string, enum: [block, tx, account, validator, username, peer, proposal, none] }
+        id: { type: string }
+        label: { type: string }
+    ValidatorRef:
+      type: object
+      required: [operator, moniker, consensus_address]
+      properties:
+        operator: { type: string }
+        moniker: { type: string }
+        consensus_address: { type: string }
+    BlockSummary:
+      type: object
+      required: [height, hash, time, proposer, tx_count, size_bytes, gas_used, gas_wanted, signatures]
+      properties:
+        height: { type: integer }
+        hash: { type: string }
+        time: { type: string, format: date-time }
+        proposer: { $ref: "#/components/schemas/ValidatorRef" }
+        tx_count: { type: integer }
+        size_bytes: { type: integer }
+        gas_used: { type: integer }
+        gas_wanted: { type: integer }
+        signatures:
+          type: object
+          required: [present, missing, total]
+          properties:
+            present: { type: integer }
+            missing: { type: integer }
+            total: { type: integer }
+    BlockList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/BlockSummary" }
+        next_cursor: { type: [string, "null"] }
+    BlockDetail:
+      allOf:
+        - $ref: "#/components/schemas/BlockSummary"
+        - type: object
+          required: [app_hash, last_block_hash, data_hash, txs, events_summary, signature_list]
+          properties:
+            app_hash: { type: string }
+            last_block_hash: { type: string }
+            data_hash: { type: string }
+            validators_hash: { type: string }
+            block_time_ms: { type: number, description: "Time since previous block" }
+            txs:
+              type: array
+              items: { $ref: "#/components/schemas/TxSummary" }
+            events_summary:
+              type: object
+              required: [transfers, delegations, founder_payouts, service_receipts, other]
+              properties:
+                transfers: { type: integer }
+                delegations: { type: integer }
+                founder_payouts: { type: integer }
+                service_receipts: { type: integer }
+                other: { type: integer }
+            signature_list:
+              type: array
+              items:
+                type: object
+                required: [validator, signed]
+                properties:
+                  validator: { $ref: "#/components/schemas/ValidatorRef" }
+                  signed: { type: boolean }
+                  timestamp: { type: string, format: date-time }
+            raw: { type: object, additionalProperties: true }
+    TxSummary:
+      type: object
+      required: [hash, height, time, success, code, type, msg_count, fee_uhash, gas_used, gas_wanted]
+      properties:
+        hash: { type: string }
+        height: { type: integer }
+        time: { type: string, format: date-time }
+        success: { type: boolean }
+        code: { type: integer }
+        type: { type: string, description: "Short type of the first message, e.g. Send" }
+        types:
+          type: array
+          items: { type: string }
+        msg_count: { type: integer }
+        fee_uhash: { $ref: "#/components/schemas/Uhash" }
+        amount_uhash: { $ref: "#/components/schemas/Uhash", description: "Total uhash moved by the transaction's transfer events" }
+        gas_used: { type: integer }
+        gas_wanted: { type: integer }
+        signer: { type: string }
+        memo: { type: string }
+        summary: { type: string, description: "One-line human summary (e.g. 'Send 12.5 HASH')" }
+    TxList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/TxSummary" }
+        next_cursor: { type: [string, "null"] }
+    TxMessage:
+      type: object
+      required: [type, type_url, value]
+      properties:
+        type: { type: string }
+        type_url: { type: string }
+        value: { type: object, additionalProperties: true }
+    Event:
+      type: object
+      required: [type, attributes]
+      properties:
+        type: { type: string }
+        msg_index: { type: [integer, "null"] }
+        attributes:
+          type: array
+          items:
+            type: object
+            required: [key, value]
+            properties:
+              key: { type: string }
+              value: { type: string }
+    FeeSplit:
+      type: object
+      required: [total_uhash, validators_uhash, founder_uhash, service_uhash, founder_bps]
+      properties:
+        total_uhash: { $ref: "#/components/schemas/Uhash" }
+        validators_uhash: { $ref: "#/components/schemas/Uhash" }
+        founder_uhash: { $ref: "#/components/schemas/Uhash" }
+        service_uhash: { $ref: "#/components/schemas/Uhash" }
+        founder_bps: { type: integer }
+        denom: { type: string }
+    TxDetail:
+      allOf:
+        - $ref: "#/components/schemas/TxSummary"
+        - type: object
+          required: [messages, fee, events, signers]
+          properties:
+            messages:
+              type: array
+              items: { $ref: "#/components/schemas/TxMessage" }
+            fee: { $ref: "#/components/schemas/FeeSplit" }
+            events:
+              type: array
+              items: { $ref: "#/components/schemas/Event" }
+            signers:
+              type: array
+              items: { type: string }
+            raw_log: { type: string, description: "Only present when the tx failed" }
+            timeout_height: { type: integer }
+            raw: { type: object, additionalProperties: true }
+    Transfer:
+      type: object
+      required: [height, time, tx_hash, from, to, amount_uhash]
+      properties:
+        height: { type: integer }
+        time: { type: string, format: date-time }
+        tx_hash: { type: string, description: "Empty for module-initiated (BeginBlock/EndBlock) transfers" }
+        from: { type: string }
+        to: { type: string }
+        from_label: { type: string }
+        to_label: { type: string }
+        amount_uhash: { $ref: "#/components/schemas/Uhash" }
+        kind: { type: string, enum: [tx, founder_payout, service_reward, treasury, other] }
+    TransferList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Transfer" }
+        next_cursor: { type: [string, "null"] }
+    AccountKind:
+      type: string
+      enum: [user, module, vesting, validator_operator]
+    TopAccount:
+      type: object
+      required: [rank, address, kind, balance_uhash, spendable_uhash, share_ppm, tx_count]
+      properties:
+        rank: { type: integer }
+        address: { type: string }
+        label: { type: string }
+        kind: { $ref: "#/components/schemas/AccountKind" }
+        balance_uhash: { $ref: "#/components/schemas/Uhash" }
+        spendable_uhash: { $ref: "#/components/schemas/Uhash" }
+        share_ppm: { type: integer, description: "Share of total supply in parts per million" }
+        tx_count: { type: integer }
+    TopAccounts:
+      type: object
+      required: [items, total_supply_uhash, height]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/TopAccount" }
+        total_supply_uhash: { $ref: "#/components/schemas/Uhash" }
+        height: { type: integer }
+        next_cursor: { type: [string, "null"] }
+    VestingPeriod:
+      type: object
+      required: [length_seconds, amount_uhash, end_time, released]
+      properties:
+        length_seconds: { type: integer }
+        amount_uhash: { $ref: "#/components/schemas/Uhash" }
+        end_time: { type: string, format: date-time }
+        released: { type: boolean }
+    Vesting:
+      type: object
+      required: [type, original_uhash, vested_uhash, vesting_uhash, start_time, end_time, periods]
+      properties:
+        type: { type: string }
+        original_uhash: { $ref: "#/components/schemas/Uhash" }
+        vested_uhash: { $ref: "#/components/schemas/Uhash" }
+        vesting_uhash: { $ref: "#/components/schemas/Uhash" }
+        start_time: { type: string, format: date-time }
+        end_time: { type: string, format: date-time }
+        periods:
+          type: array
+          items: { $ref: "#/components/schemas/VestingPeriod" }
+    Delegation:
+      type: object
+      required: [validator, balance_uhash, shares]
+      properties:
+        validator: { $ref: "#/components/schemas/ValidatorRef" }
+        balance_uhash: { $ref: "#/components/schemas/Uhash" }
+        shares: { type: string }
+        reward_uhash: { $ref: "#/components/schemas/Uhash" }
+    AccountDetail:
+      type: object
+      required: [address, kind, balance_uhash, spendable_uhash, delegations, total_delegated_uhash, total_rewards_uhash, tx_count]
+      properties:
+        address: { type: string }
+        label: { type: string }
+        kind: { $ref: "#/components/schemas/AccountKind" }
+        account_type: { type: string, description: "Cosmos @type" }
+        account_number: { type: integer }
+        sequence: { type: integer }
+        balance_uhash: { $ref: "#/components/schemas/Uhash" }
+        spendable_uhash: { $ref: "#/components/schemas/Uhash" }
+        vesting: { oneOf: [{ $ref: "#/components/schemas/Vesting" }, { type: "null" }] }
+        delegations:
+          type: array
+          items: { $ref: "#/components/schemas/Delegation" }
+        total_delegated_uhash: { $ref: "#/components/schemas/Uhash" }
+        total_rewards_uhash: { $ref: "#/components/schemas/Uhash" }
+        username: { type: [string, "null"] }
+        provider: { oneOf: [{ $ref: "#/components/schemas/Provider" }, { type: "null" }] }
+        validator: { oneOf: [{ $ref: "#/components/schemas/ValidatorRef" }, { type: "null" }] }
+        tx_count: { type: integer }
+        first_seen: { $ref: "#/components/schemas/Seen" }
+        last_seen: { $ref: "#/components/schemas/Seen" }
+        share_ppm: { type: integer }
+    Seen:
+      type: object
+      required: [height, time]
+      properties:
+        height: { type: integer }
+        time: { type: string, format: date-time }
+    Validator:
+      type: object
+      required:
+        - operator
+        - consensus_address
+        - moniker
+        - tokens_uhash
+        - voting_power_pct
+        - commission_rate
+        - status
+        - jailed
+        - uptime_pct
+        - missed_blocks
+        - delegator_count
+        - self_delegation_uhash
+      properties:
+        operator: { type: string }
+        consensus_address: { type: string }
+        consensus_pubkey: { type: string }
+        moniker: { type: string }
+        identity: { type: string }
+        website: { type: string }
+        details: { type: string }
+        tokens_uhash: { $ref: "#/components/schemas/Uhash" }
+        delegator_shares: { type: string }
+        voting_power_pct: { type: number }
+        rank: { type: integer }
+        commission_rate: { type: string, description: "Decimal string e.g. 0.050000000000000000" }
+        commission_max_rate: { type: string }
+        commission_max_change_rate: { type: string }
+        status: { type: string, enum: [BOND_STATUS_BONDED, BOND_STATUS_UNBONDING, BOND_STATUS_UNBONDED] }
+        jailed: { type: boolean }
+        uptime_pct: { type: number, description: "Over signed_blocks_window" }
+        missed_blocks: { type: integer }
+        signed_blocks_window: { type: integer }
+        delegator_count: { type: integer }
+        proposed_count: { type: integer }
+        signing_recent:
+          type: array
+          description: Last 120 heights oldest→newest, true = signed
+          items: { type: boolean }
+        self_delegation_uhash: { $ref: "#/components/schemas/Uhash" }
+        min_self_delegation: { type: string }
+        unbonding_height: { type: integer }
+        unbonding_time: { type: string, format: date-time }
+    ValidatorDetail:
+      allOf:
+        - $ref: "#/components/schemas/Validator"
+        - type: object
+          required: [delegations, proposed_blocks, signing_history]
+          properties:
+            delegations:
+              type: array
+              items:
+                type: object
+                required: [delegator, balance_uhash]
+                properties:
+                  delegator: { type: string }
+                  label: { type: string }
+                  balance_uhash: { $ref: "#/components/schemas/Uhash" }
+            proposed_blocks:
+              type: array
+              items: { $ref: "#/components/schemas/BlockSummary" }
+            signing_history:
+              type: array
+              description: Last 200 heights, true = signed
+              items:
+                type: object
+                required: [height, signed]
+                properties:
+                  height: { type: integer }
+                  signed: { type: boolean }
+            proposed_count: { type: integer }
+    Staking:
+      type: object
+      required: [bonded_uhash, not_bonded_uhash, total_supply_uhash, bonded_ratio, params, validators]
+      properties:
+        bonded_uhash: { $ref: "#/components/schemas/Uhash" }
+        not_bonded_uhash: { $ref: "#/components/schemas/Uhash" }
+        total_supply_uhash: { $ref: "#/components/schemas/Uhash" }
+        bonded_ratio: { type: number }
+        validators:
+          type: object
+          required: [active, total, jailed]
+          properties:
+            active: { type: integer }
+            total: { type: integer }
+            jailed: { type: integer }
+        params:
+          type: object
+          required: [unbonding_time_seconds, max_validators, max_entries, historical_entries, bond_denom, min_commission_rate]
+          properties:
+            unbonding_time_seconds: { type: integer }
+            max_validators: { type: integer }
+            max_entries: { type: integer }
+            historical_entries: { type: integer }
+            bond_denom: { type: string }
+            min_commission_rate: { type: string }
+        slashing:
+          type: object
+          properties:
+            signed_blocks_window: { type: integer }
+            min_signed_per_window: { type: string }
+            downtime_jail_duration_seconds: { type: integer }
+            slash_fraction_double_sign: { type: string }
+            slash_fraction_downtime: { type: string }
+    RewardParams:
+      type: object
+      required: [epoch_length_blocks, emission_bps, epoch_cap_uhash, provider_bond_uhash, provider_cap_bps, credit_rates, fraud_slash_bps]
+      properties:
+        epoch_length_blocks: { type: integer }
+        emission_bps: { type: integer }
+        epoch_cap_uhash: { $ref: "#/components/schemas/Uhash" }
+        provider_bond_uhash: { $ref: "#/components/schemas/Uhash" }
+        provider_cap_bps: { type: integer }
+        fraud_slash_bps: { type: integer }
+        jail_duration_blocks: { type: integer }
+        credit_rates:
+          type: object
+          required: [storage_per_gib_epoch, relay_per_gib, retrieval_per_gib, calls_per_hour]
+          properties:
+            storage_per_gib_epoch: { type: integer }
+            relay_per_gib: { type: integer }
+            retrieval_per_gib: { type: integer }
+            calls_per_hour: { type: integer }
+        raw: { type: object, additionalProperties: true }
+    RewardReserve:
+      type: object
+      required: [initial_uhash, remaining_uhash, paid_total_uhash, current_budget_uhash, provider_cap_uhash, projections, schedule]
+      properties:
+        initial_uhash: { $ref: "#/components/schemas/Uhash" }
+        remaining_uhash: { $ref: "#/components/schemas/Uhash" }
+        paid_total_uhash: { $ref: "#/components/schemas/Uhash" }
+        current_budget_uhash: { $ref: "#/components/schemas/Uhash", description: "min(remaining * emission_bps / 10000, epoch_cap)" }
+        provider_cap_uhash: { $ref: "#/components/schemas/Uhash", description: "current_budget * provider_cap_bps / 10000" }
+        projections:
+          type: object
+          required: [epochs_30_uhash, epochs_365_uhash, epochs_3650_uhash]
+          properties:
+            epochs_30_uhash: { $ref: "#/components/schemas/Uhash" }
+            epochs_365_uhash: { $ref: "#/components/schemas/Uhash" }
+            epochs_3650_uhash: { $ref: "#/components/schemas/Uhash" }
+        schedule:
+          type: array
+          description: Chain-provided emission schedule if any, plus projected budgets per epoch (sampled)
+          items:
+            type: object
+            required: [epoch, budget_uhash, remaining_uhash]
+            properties:
+              epoch: { type: integer }
+              budget_uhash: { $ref: "#/components/schemas/Uhash" }
+              remaining_uhash: { $ref: "#/components/schemas/Uhash" }
+        chain_schedule: { type: object, additionalProperties: true }
+    CurrentEpoch:
+      type: object
+      required: [number, start_height, end_height, blocks_left, budget_uhash, provider_cap_uhash, providers_active]
+      properties:
+        number: { type: integer }
+        start_height: { type: integer }
+        end_height: { type: integer }
+        blocks_left: { type: integer }
+        budget_uhash: { $ref: "#/components/schemas/Uhash" }
+        provider_cap_uhash: { $ref: "#/components/schemas/Uhash" }
+        providers_active: { type: integer }
+        estimated_end_time: { type: string, format: date-time }
+    Epoch:
+      type: object
+      required: [number, start_height, end_height, budget_uhash, paid_uhash, providers_paid, closed]
+      properties:
+        number: { type: integer }
+        start_height: { type: integer }
+        end_height: { type: integer }
+        end_time: { type: string, format: date-time }
+        budget_uhash: { $ref: "#/components/schemas/Uhash" }
+        paid_uhash: { $ref: "#/components/schemas/Uhash" }
+        providers_paid: { type: integer }
+        closed: { type: boolean }
+    Provider:
+      type: object
+      required: [operator, roles, bond_uhash, declared_storage_bytes, reward_address, jailed, fraud_score, current_epoch_credit, lifetime_paid_uhash]
+      properties:
+        operator: { type: string }
+        moniker: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+        bond_uhash: { $ref: "#/components/schemas/Uhash" }
+        declared_storage_bytes: { type: string }
+        reward_address: { type: string }
+        jailed: { type: boolean }
+        jailed_until_height: { type: integer }
+        fraud_score: { type: number }
+        current_epoch_credit: { type: string }
+        lifetime_paid_uhash: { $ref: "#/components/schemas/Uhash" }
+        registered_height: { type: integer }
+        peer_id: { type: string }
+    ProviderDetail:
+      allOf:
+        - $ref: "#/components/schemas/Provider"
+        - type: object
+          required: [assignments, challenges, fraud, payouts]
+          properties:
+            assignments:
+              type: array
+              items: { type: object, additionalProperties: true }
+            challenges:
+              type: object
+              required: [total, passed, failed, pass_rate]
+              properties:
+                total: { type: integer }
+                passed: { type: integer }
+                failed: { type: integer }
+                pass_rate: { type: number }
+                recent:
+                  type: array
+                  items: { type: object, additionalProperties: true }
+            fraud: { type: object, additionalProperties: true }
+            payouts:
+              type: array
+              items: { $ref: "#/components/schemas/Transfer" }
+            rewards_raw: { type: object, additionalProperties: true }
+    Welcome:
+      type: object
+      required: [enabled, reason, params, status, tiers, claims]
+      properties:
+        enabled: { type: boolean }
+        reason: { type: string, description: "Human explanation when disabled, e.g. 'no attestor registered'" }
+        params: { type: object, additionalProperties: true }
+        status: { type: object, additionalProperties: true }
+        tiers:
+          type: array
+          items: { type: object, additionalProperties: true }
+        claims:
+          type: array
+          items: { type: object, additionalProperties: true }
+        claims_total: { type: integer }
+    Founder:
+      type: object
+      required: [params, revenue, beneficiary, beneficiary_history, vesting, delegations, voting_power_pct, payout_interval_blocks, next_payout_height, payouts, module_address, allocation_uhash]
+      properties:
+        params:
+          type: object
+          required: [fee_basis_points, ceiling_basis_points, beneficiary]
+          properties:
+            fee_basis_points: { type: integer }
+            ceiling_basis_points: { type: integer }
+            beneficiary: { type: string }
+            raw: { type: object, additionalProperties: true }
+        revenue:
+          type: object
+          required: [accrued_uhash, paid_uhash, pending_uhash]
+          properties:
+            accrued_uhash: { $ref: "#/components/schemas/Uhash" }
+            paid_uhash: { $ref: "#/components/schemas/Uhash" }
+            pending_uhash: { $ref: "#/components/schemas/Uhash" }
+            raw: { type: object, additionalProperties: true }
+        beneficiary: { type: string }
+        module_address: { type: string }
+        allocation_uhash: { $ref: "#/components/schemas/Uhash" }
+        beneficiary_history:
+          type: array
+          items:
+            type: object
+            required: [address]
+            properties:
+              address: { type: string }
+              height: { type: integer }
+              time: { type: string, format: date-time }
+        vesting: { oneOf: [{ $ref: "#/components/schemas/Vesting" }, { type: "null" }] }
+        balance_uhash: { $ref: "#/components/schemas/Uhash" }
+        spendable_uhash: { $ref: "#/components/schemas/Uhash" }
+        delegations:
+          type: array
+          items: { $ref: "#/components/schemas/Delegation" }
+        total_delegated_uhash: { $ref: "#/components/schemas/Uhash" }
+        voting_power_pct: { type: number }
+        payout_interval_blocks: { type: integer }
+        next_payout_height: { type: integer }
+        payouts:
+          type: array
+          items: { $ref: "#/components/schemas/Transfer" }
+    Fees:
+      type: object
+      required: [params, totals, service_revenue]
+      properties:
+        params: { type: object, additionalProperties: true }
+        totals: { type: object, additionalProperties: true }
+        service_revenue: { type: object, additionalProperties: true }
+        summary:
+          type: object
+          properties:
+            total_fees_uhash: { $ref: "#/components/schemas/Uhash" }
+            to_validators_uhash: { $ref: "#/components/schemas/Uhash" }
+            to_founder_uhash: { $ref: "#/components/schemas/Uhash" }
+            to_service_uhash: { $ref: "#/components/schemas/Uhash" }
+            founder_bps: { type: integer }
+    Treasury:
+      type: object
+      required: [reserves, disbursements, total_uhash]
+      properties:
+        reserves:
+          type: array
+          items:
+            type: object
+            required: [name, label, address, balance_uhash]
+            properties:
+              name: { type: string, enum: [treasury, growth, dev_grants, liquidity] }
+              label: { type: string }
+              address: { type: string }
+              balance_uhash: { $ref: "#/components/schemas/Uhash" }
+              raw: { type: object, additionalProperties: true }
+        total_uhash: { $ref: "#/components/schemas/Uhash" }
+        disbursements:
+          type: array
+          items: { type: object, additionalProperties: true }
+    GovParams:
+      type: object
+      required: [quorum, threshold, veto_threshold, voting_period_seconds, min_deposit_uhash, max_deposit_period_seconds]
+      properties:
+        quorum: { type: string }
+        threshold: { type: string }
+        veto_threshold: { type: string }
+        voting_period_seconds: { type: integer }
+        expedited_voting_period_seconds: { type: integer }
+        min_deposit_uhash: { $ref: "#/components/schemas/Uhash" }
+        max_deposit_period_seconds: { type: integer }
+        raw: { type: object, additionalProperties: true }
+    Tally:
+      type: object
+      required: [yes_uhash, no_uhash, abstain_uhash, no_with_veto_uhash, total_uhash, bonded_uhash, turnout_pct]
+      properties:
+        yes_uhash: { $ref: "#/components/schemas/Uhash" }
+        no_uhash: { $ref: "#/components/schemas/Uhash" }
+        abstain_uhash: { $ref: "#/components/schemas/Uhash" }
+        no_with_veto_uhash: { $ref: "#/components/schemas/Uhash" }
+        total_uhash: { $ref: "#/components/schemas/Uhash" }
+        bonded_uhash: { $ref: "#/components/schemas/Uhash" }
+        turnout_pct: { type: number }
+        yes_pct: { type: number }
+        no_pct: { type: number }
+        abstain_pct: { type: number }
+        no_with_veto_pct: { type: number }
+        quorum_reached: { type: boolean }
+        passing: { type: boolean }
+    Proposal:
+      type: object
+      required: [id, title, summary, status, submit_time, tally, total_deposit_uhash, messages, proposer]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        summary: { type: string }
+        status: { type: string }
+        proposer: { type: string }
+        submit_time: { type: string, format: date-time }
+        deposit_end_time: { type: string, format: date-time }
+        voting_start_time: { type: [string, "null"], format: date-time }
+        voting_end_time: { type: [string, "null"], format: date-time }
+        total_deposit_uhash: { $ref: "#/components/schemas/Uhash" }
+        tally: { $ref: "#/components/schemas/Tally" }
+        messages:
+          type: array
+          items:
+            type: object
+            required: [type, type_url, value]
+            properties:
+              type: { type: string }
+              type_url: { type: string }
+              value: { type: object, additionalProperties: true }
+              diff:
+                type: array
+                description: For MsgUpdateParams, changed keys against current params
+                items:
+                  type: object
+                  required: [key, current, proposed]
+                  properties:
+                    key: { type: string }
+                    current: {}
+                    proposed: {}
+        metadata: { type: string }
+        expedited: { type: boolean }
+    ProposalDetail:
+      allOf:
+        - $ref: "#/components/schemas/Proposal"
+        - type: object
+          required: [votes, deposits, timeline, params]
+          properties:
+            votes:
+              type: array
+              items:
+                type: object
+                required: [voter, options]
+                properties:
+                  voter: { type: string }
+                  label: { type: string }
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      required: [option, weight]
+                      properties:
+                        option: { type: string }
+                        weight: { type: string }
+                  height: { type: integer }
+                  tx_hash: { type: string }
+            deposits:
+              type: array
+              items:
+                type: object
+                required: [depositor, amount_uhash]
+                properties:
+                  depositor: { type: string }
+                  amount_uhash: { $ref: "#/components/schemas/Uhash" }
+            timeline:
+              type: array
+              items:
+                type: object
+                required: [event, time]
+                properties:
+                  event: { type: string }
+                  time: { type: string, format: date-time }
+                  done: { type: boolean }
+            params: { $ref: "#/components/schemas/GovParams" }
+    Peer:
+      type: object
+      required: [id, ip_prefix, last_seen]
+      properties:
+        id: { type: string, description: "CometBFT node id or libp2p peer id" }
+        moniker: { type: string }
+        version: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+        ip_prefix: { type: string, description: "IPv4 /24 or IPv6 /48 — never a full address" }
+        outbound: { type: boolean }
+        first_seen: { type: string, format: date-time }
+        last_seen: { type: string, format: date-time }
+        connected: { type: boolean }
+    Network:
+      type: object
+      required: [consensus, p2p, seeds, info, fork_isolation, versions]
+      properties:
+        consensus:
+          type: object
+          required: [peer_count, peers, node_id, moniker, listening]
+          properties:
+            node_id: { type: string, description: "This node's own CometBFT id, read at runtime" }
+            moniker: { type: string }
+            listening: { type: boolean }
+            peer_count: { type: integer }
+            peers:
+              type: array
+              items: { $ref: "#/components/schemas/Peer" }
+        p2p:
+          type: object
+          required: [peer_id, peer_count, peers, roles]
+          properties:
+            peer_id: { type: string, description: "This node's own libp2p peer id, read at runtime" }
+            peer_count: { type: integer }
+            roles:
+              type: array
+              items: { type: string }
+            peers:
+              type: array
+              items: { $ref: "#/components/schemas/Peer" }
+            status: { type: object, additionalProperties: true }
+        seeds:
+          type: object
+          required: [cometbft, libp2p]
+          properties:
+            cometbft:
+              type: array
+              items: { type: string }
+            libp2p:
+              type: array
+              items: { type: string }
+        info: { type: object, additionalProperties: true, description: "/hashgram/network/v1/info" }
+        fork_isolation: { type: object, additionalProperties: true, description: "/hashgram/network/v1/fork_isolation" }
+        versions:
+          type: array
+          items:
+            type: object
+            required: [version, count]
+            properties:
+              version: { type: string }
+              count: { type: integer }
+              layer: { type: string, enum: [consensus, p2p] }
+        seen_24h:
+          type: object
+          required: [consensus_peers, p2p_peers, validators]
+          properties:
+            consensus_peers: { type: integer }
+            p2p_peers: { type: integer }
+            validators: { type: integer }

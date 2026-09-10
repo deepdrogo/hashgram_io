@@ -1,0 +1,60 @@
+# Caddy for hashgram.io — the only process on this host that the internet
+# reaches (80/443). Hardened like hashgram-indexer.service.
+[Unit]
+Description=Caddy (hashgram.io)
+Documentation=https://caddyserver.com/docs/
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=notify
+User=caddy
+Group=caddy
+EnvironmentFile=-/etc/hashgram/caddy.env
+ExecStart=/usr/local/bin/caddy run --environ --config /etc/caddy/Caddyfile --adapter caddyfile
+ExecReload=/usr/local/bin/caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile --force
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=10s
+LimitNOFILE=1048576
+
+# Filesystem
+ReadWritePaths=/var/lib/caddy /var/log/caddy
+StateDirectory=caddy
+LogsDirectory=caddy
+ConfigurationDirectory=caddy
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+ProcSubset=pid
+
+# Capabilities: only binding 80/443
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+
+# Syscalls / misc
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+# Go runtime needs W^X memory
+MemoryDenyWriteExecute=false
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

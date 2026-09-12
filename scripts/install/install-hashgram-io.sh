@@ -11,14 +11,14 @@
 #   2. builds web/ → /var/www/hashgram-io (static SolidJS SPA, precompressed)
 #   3. (re)builds and installs hashgram-indexer if a Go toolchain is present
 #   4. installs a Caddy build with rate-limit / Cloudflare-IP / DNS / replace modules
-#   5. installs deploy/caddy/Caddyfile + deploy/systemd/caddy.service
+#   5. installs the shared Caddy base + service; preserves /etc/caddy/sites.d/*
 #   6. opens ONLY 80/tcp, 443/tcp, 443/udp in ufw (on top of what bootstrap opened)
 #   7. enables caddy + hashgram-indexer, then runs `hashgramctl mainnet-preflight`
 #      and exits non-zero if it fails.
 #
 # Environment (optional), read from /etc/hashgram/caddy.env if present:
 #   ACME_EMAIL     contact for Let's Encrypt (default ops@hashgram.io)
-#   CF_API_TOKEN   Cloudflare token (Zone:DNS:Edit) → DNS-01 instead of HTTP-01
+#   CF_API_TOKEN   Cloudflare token (Zone:DNS:Edit for every served zone)
 #   SITE_DOMAIN    default hashgram.io
 set -euo pipefail
 
@@ -98,7 +98,7 @@ if ! id caddy >/dev/null 2>&1; then
   useradd --system --home /var/lib/caddy --shell /usr/sbin/nologin caddy
 fi
 install -d -o caddy -g caddy -m 0750 /var/lib/caddy /var/log/caddy
-install -d -m 0755 /etc/caddy /etc/caddy/conf.d
+install -d -m 0755 /etc/caddy /etc/caddy/conf.d /etc/caddy/sites.d
 
 need_caddy=1
 if [[ -x "$CADDY_BIN" ]] && "$CADDY_BIN" list-modules 2>/dev/null | grep -q '^http.handlers.rate_limit$' &&
@@ -122,10 +122,25 @@ fi
 log "caddy $("$CADDY_BIN" version | cut -d' ' -f1)"
 
 # ------------------------------------------------------------------ 5. config
+# Site files are owned by their respective deployments. Record them before
+# replacing the shared base so this installer fails if a future edit mutates
+# another domain.
+SITE_CONFIG_MANIFEST="$(mktemp)"
+while IFS= read -r -d '' site_file; do
+  sha256sum "$site_file"
+done < <(find /etc/caddy/sites.d -maxdepth 1 -type f -name '*.caddy' -print0 | sort -z) >"$SITE_CONFIG_MANIFEST"
+
+grep -Fq 'import /etc/caddy/sites.d/*.caddy' "$REPO_ROOT/deploy/caddy/Caddyfile" ||
+  die "base Caddyfile must import /etc/caddy/sites.d/*.caddy"
 install -m 0644 "$REPO_ROOT/deploy/caddy/Caddyfile" /etc/caddy/Caddyfile
 if [[ "$SITE_DOMAIN" != "hashgram.io" ]]; then
   sed -i "s/hashgram\.io/${SITE_DOMAIN}/g" /etc/caddy/Caddyfile
 fi
+if [[ -s "$SITE_CONFIG_MANIFEST" ]] && ! sha256sum -c "$SITE_CONFIG_MANIFEST" >/dev/null; then
+  rm -f "$SITE_CONFIG_MANIFEST"
+  die "another site's Caddy configuration changed during hashgram.io install"
+fi
+rm -f "$SITE_CONFIG_MANIFEST"
 # DNS-01 only when a token is configured; otherwise HTTP-01 (default).
 if [[ -n "${CF_API_TOKEN:-}" ]]; then
   install -m 0644 "$REPO_ROOT/deploy/caddy/conf.d/tls-dns.conf.example" /etc/caddy/conf.d/tls-dns.conf
@@ -138,7 +153,7 @@ if [[ ! -f /etc/hashgram/caddy.env ]]; then
   cat >/etc/hashgram/caddy.env <<EOF
 # Environment for caddy.service (read by install-hashgram-io.sh and systemd)
 ACME_EMAIL=${ACME_EMAIL:-ops@hashgram.io}
-# CF_API_TOKEN=   # Cloudflare API token with Zone:DNS:Edit → enables DNS-01
+# CF_API_TOKEN=   # Zone:DNS:Edit for every Caddy-served Cloudflare zone
 EOF
   chmod 0640 /etc/hashgram/caddy.env
   chown root:caddy /etc/hashgram/caddy.env
@@ -165,6 +180,9 @@ systemctl daemon-reload
 systemctl enable --now hashgram-indexer >/dev/null
 systemctl enable caddy >/dev/null
 if systemctl is-active --quiet caddy; then
+  # The admin API is available only through caddy's protected runtime socket.
+  # The restart fallback is needed once when upgrading an older `admin off`
+  # installation; subsequent deployments reload without dropping connections.
   systemctl reload caddy || systemctl restart caddy
 else
   systemctl start caddy

@@ -19,7 +19,9 @@
 # caddy-dns/cloudflare, caddyserver/replace-response.
 {
 	email {$ACME_EMAIL:ops@hashgram.io}
-	admin off
+	# Unix-only admin API enables graceful, zero-downtime config reloads without
+	# exposing Caddy's admin endpoint on a TCP port.
+	admin unix//run/caddy/admin.sock
 	servers {
 		trusted_proxies cloudflare {
 			interval 12h
@@ -72,6 +74,10 @@
 		-X-Powered-By
 	}
 }
+
+# Other domains on this host own files under sites.d. The hashgram.io
+# installer replaces only this base file and never edits imported site files.
+import /etc/caddy/sites.d/*.caddy
 
 www.hashgram.io {
 	import security_headers

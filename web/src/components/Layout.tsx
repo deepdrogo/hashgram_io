@@ -42,7 +42,14 @@ const DESKTOP_MORE: NavItem[] = [
   { href: '/brand', label: 'Brand', icon: Palette },
 ];
 
-function DesktopNavGroup(props: { label: string; items: NavItem[]; active: (href: string) => boolean }) {
+const MOBILE_PRIMARY = NAV.filter((item) => !['/blocks', '/txs', '/accounts', '/founder'].includes(item.href));
+const MOBILE_SECONDARY: NavItem[] = [
+  ...NAV.filter((item) => ['/blocks', '/txs', '/accounts', '/founder'].includes(item.href)),
+  { href: '/status', label: 'Status', icon: Activity },
+  { href: '/brand', label: 'Brand', icon: Palette },
+];
+
+function DesktopNavGroup(props: { label: string; items: NavItem[]; active: (href: string) => boolean; align?: 'start' | 'end' }) {
   let menu: HTMLDetailsElement | undefined;
   const groupActive = () => props.items.some((item) => props.active(item.href));
   const close = () => menu?.removeAttribute('open');
@@ -68,7 +75,7 @@ function DesktopNavGroup(props: { label: string; items: NavItem[]; active: (href
         {props.label}
         <ChevronDown class="size-3 transition-transform group-open:rotate-180" aria-hidden="true" />
       </summary>
-      <div class="absolute left-0 top-full z-50 mt-2 min-w-48 rounded-lg border border-ink-800 bg-black p-1 shadow-xl">
+      <div class={`absolute top-full z-50 mt-2 min-w-48 rounded-lg border border-ink-800 bg-black p-1 shadow-xl ${props.align === 'end' ? 'right-0' : 'left-0'}`}>
         <For each={props.items}>
           {(item) => (
             <A
@@ -140,11 +147,11 @@ export function Layout(props: ParentProps) {
       </a>
       <Banner />
       <header class="sticky top-0 z-40 border-b border-ink-900 bg-black/90 backdrop-blur">
-        <div class="mx-auto flex h-14 max-w-[96rem] items-center gap-3 px-4">
-          <A href="/" class="shrink-0" aria-label="Hashgram home">
+        <div class="mx-auto grid h-14 max-w-[112rem] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4">
+          <A href="/" class="flex min-w-0 items-center justify-self-start" aria-label="Hashgram home">
             <Wordmark height={20} />
           </A>
-          <nav class="hidden min-w-0 flex-1 items-center gap-0.5 xl:flex" aria-label="Primary">
+          <nav class="hidden min-w-0 items-center justify-center gap-0.5 justify-self-center xl:flex" aria-label="Primary">
             <For each={DESKTOP_PRIMARY.slice(0, 1)}>
               {(n) => (
                 <A href={n.href} class={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${active(n.href) ? 'bg-ink-900 font-medium' : 'text-ink-500 hover:text-white'}`} aria-current={active(n.href) ? 'page' : undefined}>
@@ -162,11 +169,11 @@ export function Layout(props: ParentProps) {
                 </A>
               )}
             </For>
-            <DesktopNavGroup label="More" items={DESKTOP_MORE} active={active} />
+            <DesktopNavGroup label="More" items={DESKTOP_MORE} active={active} align="end" />
           </nav>
-          <div class="ml-auto flex items-center gap-3">
+          <div class="col-start-3 flex min-w-0 items-center justify-end gap-3">
             <Show when={!isHome()}>
-              <SearchBox class="hidden w-56 2xl:block" />
+              <SearchBox class="hidden w-48 2xl:block" />
             </Show>
             <div class="flex items-center gap-2 sm:hidden">
               <Show when={store.head}>
@@ -199,31 +206,34 @@ export function Layout(props: ParentProps) {
           </div>
         </div>
         <Show when={open()}>
-          <nav class="border-t border-ink-900 px-4 py-3 xl:hidden" aria-label="Primary mobile">
+          <nav class="max-h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain border-t border-ink-900 px-4 py-3 xl:hidden" aria-label="Primary mobile">
             <SearchBox class="mb-3" />
-            <ul class="grid grid-cols-2 gap-1">
-              <For each={NAV}>
+            <ul class="grid gap-0.5 sm:grid-cols-2">
+              <For each={MOBILE_PRIMARY}>
                 {(n) => (
                   <li>
-                    <A href={n.href} class={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${active(n.href) ? 'bg-ink-900 font-medium' : 'text-ink-500'}`} onClick={() => setOpen(false)}>
+                    <A href={n.href} class={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm ${active(n.href) ? 'bg-ink-900 font-medium text-white' : 'text-ink-500'}`} aria-current={active(n.href) ? 'page' : undefined} onClick={() => setOpen(false)}>
                       <n.icon class="size-4 shrink-0" aria-hidden="true" />
-                      {n.label}
+                      <span class="truncate">{n.label}</span>
+                    </A>
+                  </li>
+                )}
+              </For>
+            </ul>
+            <p class="mt-4 px-3 text-[11px] font-medium uppercase tracking-wide text-ink-700">Explorer</p>
+            <ul class="mt-1 grid gap-0.5 sm:grid-cols-2">
+              <For each={MOBILE_SECONDARY}>
+                {(n) => (
+                  <li>
+                    <A href={n.href} class={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm ${active(n.href) ? 'bg-ink-900 font-medium text-white' : 'text-ink-500'}`} aria-current={active(n.href) ? 'page' : undefined} onClick={() => setOpen(false)}>
+                      <n.icon class="size-4 shrink-0" aria-hidden="true" />
+                      <span class="truncate">{n.label}</span>
                     </A>
                   </li>
                 )}
               </For>
               <li>
-                <A href="/status" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-500" onClick={() => setOpen(false)}>
-                  <Activity class="size-4 shrink-0" aria-hidden="true" /> Status
-                </A>
-              </li>
-              <li>
-                <A href="/brand" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-500" onClick={() => setOpen(false)}>
-                  <Palette class="size-4 shrink-0" aria-hidden="true" /> Brand
-                </A>
-              </li>
-              <li>
-                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-ink-500">
+                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-ink-500">
                   <Github class="size-4 shrink-0" aria-hidden="true" /> GitHub
                 </a>
               </li>

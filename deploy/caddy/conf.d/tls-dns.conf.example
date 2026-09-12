@@ -1,6 +1,7 @@
 # Installed as /etc/caddy/conf.d/tls-dns.conf by install-hashgram-io.sh when
-# CF_API_TOKEN is set in /etc/hashgram/caddy.env. Token scope: Zone:DNS:Edit on
-# the hashgram.io zone only.
+# CF_API_TOKEN is set in /etc/hashgram/caddy.env. Token scope: Zone:DNS:Edit
+# on every domain served through this shared issuer (currently hashgram.io
+# and hashgram.org).
 tls {
 	issuer acme {
 		dns cloudflare {$CF_API_TOKEN}

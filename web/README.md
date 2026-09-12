@@ -120,6 +120,32 @@ the needed modules, installs `deploy/caddy/Caddyfile` and
 units and runs `hashgramctl mainnet-preflight` (failing if it fails).
 It also writes `/deployment.json` with the exact deployed commit.
 
+### Multiple sites on the same Caddy
+
+`deploy/caddy/Caddyfile` is the shared base and imports
+`/etc/caddy/sites.d/*.caddy` at top level. Each other domain owns one file in
+that directory; the hashgram.io installer creates the directory but never
+adds, edits or deletes its contents. It records checksums before replacing
+the base and fails if another site's file changes during installation.
+
+The tracked `deploy/caddy/sites/hashgram.org.caddy` is the reference
+configuration for the separate static hashgram.org project. Install it once:
+
+```bash
+sudo install -d -m 0755 /etc/caddy/sites.d
+sudo install -m 0644 deploy/caddy/sites/hashgram.org.caddy \
+  /etc/caddy/sites.d/hashgram.org.caddy
+sudo -u caddy /usr/local/bin/caddy validate \
+  --config /etc/caddy/Caddyfile --adapter caddyfile
+sudo systemctl reload caddy
+```
+
+Do not put another domain directly into `/etc/caddy/Caddyfile`: that base is
+intentionally replaced by hashgram.io upgrades. Do not add SPA fallback or
+`/api` proxying to static companion sites. Caddy's admin API listens only on
+the protected `/run/caddy/admin.sock` Unix socket so systemd can reload this
+shared configuration without exposing an admin TCP port.
+
 ### Automatic deployment
 
 `.github/workflows/deploy.yml` runs after a successful `main` CI workflow
@@ -157,7 +183,7 @@ settings:
 
 - **SSL/TLS → Full (strict)**. Caddy holds a real Let's Encrypt certificate.
 - If **Always Use HTTPS** is on, HTTP-01 cannot complete at the edge: put a
-  Cloudflare API token (Zone:DNS:Edit for this zone only) in
+  Cloudflare API token (Zone:DNS:Edit for every zone served by this Caddy) in
   `/etc/hashgram/caddy.env` as `CF_API_TOKEN=…` and re-run the installer —
   Caddy switches to DNS-01.
 - Turn **off** Rocket Loader, Auto Minify, Email Address Obfuscation and

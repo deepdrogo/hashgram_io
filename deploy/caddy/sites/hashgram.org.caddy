@@ -1,0 +1,57 @@
+# hashgram.org — standalone static project site.
+# Installed separately as /etc/caddy/sites.d/hashgram.org.caddy.
+# No SPA fallback, node API or indexer routes belong to this domain.
+
+www.hashgram.org {
+	import security_headers
+	redir https://hashgram.org{uri} 308
+}
+
+hashgram.org {
+	import security_headers
+	encode zstd gzip
+
+	# Uses the shared DNS-01 issuer when configured. The Cloudflare token must
+	# have Zone:DNS:Edit for both hashgram.io and hashgram.org.
+	import /etc/caddy/conf.d/*.conf
+
+	root * /var/www/hashgram-org
+
+	@immutable path /assets/* /brand/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	@whitepaper path /hashgram-whitepaper.pdf
+	header @whitepaper Cache-Control "public, max-age=86400, must-revalidate"
+
+	@metadata path / /index.html /robots.txt /sitemap.xml
+	header @metadata Cache-Control "public, max-age=0, must-revalidate"
+
+	file_server
+
+	log {
+		output file /var/log/caddy/hashgram.org.log {
+			roll_size 50MiB
+			roll_keep 10
+		}
+		format filter {
+			wrap json
+			fields {
+				request>remote_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>client_ip ip_mask {
+					ipv4 24
+					ipv6 48
+				}
+				request>headers>Cf-Connecting-Ip delete
+				request>headers>X-Forwarded-For delete
+				request>headers>X-Real-Ip delete
+				request>headers>Cookie delete
+				request>headers>Authorization delete
+				request>headers>Cf-Ray delete
+				request>headers>Cf-Ipcountry delete
+			}
+		}
+	}
+}

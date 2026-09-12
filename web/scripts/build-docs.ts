@@ -31,6 +31,13 @@ const OUT_CONTENT = join(WEB, 'public/docs-content');
 
 /** Ordered list from the site spec; anything else in docs/ follows alphabetically. */
 const ORDER = [
+  'HASHGRAM_ONE_ARCHITECTURE',
+  'HASHMAIL',
+  'HASHDRIVE',
+  'SPACES',
+  'SYNC_ENGINE',
+  'PRIVACY_MODEL',
+  'MULTI_DEVICE_SECURITY',
   'ARCHITECTURE',
   'PROTOCOL',
   'TOKENOMICS',
@@ -49,6 +56,9 @@ const ORDER = [
   'THREAT_MODEL',
   'DISASTER_RECOVERY',
   'LOGGING_POLICY',
+  'MAIL_GATEWAY',
+  'INDEXER',
+  'ADR_HASH_STORAGE_MARKET',
 ];
 const EXCLUDE = [/^PROMPT_/i, /_KA\.md$/i, /^FOUNDER_LAUNCH_RUNBOOK/i, /^PHASE1_REPORT/i, /^FINAL_REPORT/i, /^README\.md$/i];
 
@@ -64,6 +74,16 @@ const NATIVE: Array<{ file: string; slug: string; group: string }> = [
 ];
 
 const GROUPS: Record<string, string> = {
+  HASHGRAM_ONE_ARCHITECTURE: 'Hashgram One',
+  HASHMAIL: 'Hashgram One',
+  HASHDRIVE: 'Hashgram One',
+  SPACES: 'Hashgram One',
+  SYNC_ENGINE: 'Hashgram One',
+  PRIVACY_MODEL: 'Security',
+  MULTI_DEVICE_SECURITY: 'Security',
+  MAIL_GATEWAY: 'Hashgram One',
+  ADR_HASH_STORAGE_MARKET: 'Economics',
+  INDEXER: 'Operations',
   ARCHITECTURE: 'Protocol',
   PROTOCOL: 'Protocol',
   TOKENOMICS: 'Economics',
@@ -73,11 +93,11 @@ const GROUPS: Record<string, string> = {
   OPERATIONS: 'Operations',
   NODE_ROLES: 'Operations',
   CLIENT_CONNECTIVITY_SPEC: 'Protocol',
-  SOCIAL_PROTOCOL: 'Social layer',
-  MESSAGING: 'Social layer',
-  CALLS: 'Social layer',
-  STORAGE: 'Social layer',
-  MODERATION: 'Social layer',
+  SOCIAL_PROTOCOL: 'Application protocols',
+  MESSAGING: 'Application protocols',
+  CALLS: 'Application protocols',
+  STORAGE: 'Application protocols',
+  MODERATION: 'Application protocols',
   SECURITY: 'Security',
   THREAT_MODEL: 'Security',
   DISASTER_RECOVERY: 'Operations',

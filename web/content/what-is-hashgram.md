@@ -1,11 +1,32 @@
 # What is Hashgram
 
-Hashgram is a public blockchain — a shared ledger run by many independent
-computers — built for one job: paying people who store, relay and serve data
-for a peer-to-peer social and messaging network.
+Hashgram One is a private communication and storage platform. **Mail, Drive,
+People, Feed, Spaces, Earn, Wallet and Network** are the product; a public
+blockchain and a peer-to-peer swarm are the infrastructure underneath it.
 
 This page explains it in plain language. The technical documents in the left
 menu go deeper.
+
+## What people use
+
+- **HashMail** is end-to-end encrypted mail between Hashgram identities,
+  `@usernames` and `name@hashgram.io` addresses. Threads, attachments,
+  receipts and Requests for unknown senders are implemented. Mail crossing
+  the optional Internet e-mail gateway is labelled as not end-to-end.
+- **HashDrive** encrypts files on your device in authenticated segments.
+  It supports folders, versions, trash and capability-based snapshot or live
+  sharing without making a file public.
+- **People and Feed** combine on-chain identity discovery with private local
+  relationship state, public signed chronological posts and private Circles.
+- **Spaces** are private environments for families, teams and projects, with
+  roles, group mail, posts, announcements and a shared Drive.
+- **Earn, Wallet and Network** expose the one HASH asset, staking, providers
+  and the network through interchangeable nodes.
+
+The protocol, Rust SDK and reference CLI implement these flows today. The
+complete Hashgram One desktop UI is not released yet; the older v0.1.1
+messenger-era desktop is superseded. See the [product overview](/one) and
+[architecture](/docs/hashgram-one-architecture).
 
 ## The token
 
@@ -21,7 +42,8 @@ Where the supply went at genesis:
 | Share           | Amount            | Purpose                                                   |
 | --------------- | ----------------- | --------------------------------------------------------- |
 | Useful-service reserve | 500,000,000 | Pays nodes for storage, relay and media work, over many years |
-| Founder         | 200,000,000       | 20,000,000 unlocked at genesis (1,000,000 of it funded the first validator), 180,000,000 vesting over 96 months |
+| Founder         | 199,000,000       | 19,000,000 spendable, 180,000,000 vesting over 96 months |
+| Genesis validator operator | 1,000,000 | Initial operator allocation |
 | Treasury reserves | see [/accounts](/accounts) | Treasury, Growth, Developer grants, Liquidity — moved only by governance |
 | Everyone else   | the remainder     | Validators, early participants, welcome rewards           |
 
@@ -74,12 +96,18 @@ record to it. Usernames resolve to addresses, so people can find each other
 without copying 40-character strings. Search for any `@name` in the box at the
 top of this site.
 
-## The social layer
+## The private application layer
 
-On top of the chain runs a peer-to-peer network (libp2p) where posts,
-messages, media and calls travel directly between nodes. The chain does not
-store your messages; it stores who is allowed to be paid for carrying them.
-Nodes that take on the `indexer` role follow social events to build feeds.
+Native mail, Drive capabilities, contact requests, Circle posts and Space
+events travel as versioned application messages inside MLS ciphertext. Store
+and relay nodes cannot decode them. Public posts remain signed public events
+and can be indexed into chronological feeds; private Circle and Space content
+is merged by the client after local decryption.
+
+The chain stores only facts that need global agreement: identity and device
+public keys, usernames, balances, validators, provider records and governance.
+Subjects, bodies, recipients, filenames, folder trees and Space membership do
+not go on chain.
 
 ## Governance
 
@@ -101,10 +129,10 @@ explorer disables itself.
 
 ## Source code
 
-Hashgram is open source. The chain (`hashgramd`), the P2P node
-(`hashgram-node`), the tools, this website and its API live in one
-repository: **[github.com/deepdrogo/hashgram](https://github.com/deepdrogo/hashgram)**.
-Every document in this section is rendered from that repository's `docs/`
-folder, with the commit it came from shown at the bottom of each page.
+Hashgram is open source. The chain (`hashgramd`), P2P node
+(`hashgram-node`), application protocol, Rust SDK, CLI, gateway and indexer
+live at **[github.com/deepdrogo/hashgram](https://github.com/deepdrogo/hashgram)**.
+This companion website is mirrored at
+**[github.com/deepdrogo/hashgram_io](https://github.com/deepdrogo/hashgram_io)**.
 
 Next: [Run a node](/docs/run-a-node) · [API](/docs/api) · [Tokenomics](/docs/tokenomics)

@@ -58,7 +58,7 @@ export default function NetworkPage() {
 
   return (
     <div>
-      <PageHeader title="Network" lead="What this server's own node sees. Three layers, three separate numbers — they are never added together: consensus peers are CometBFT connections, P2P peers are libp2p connections carrying the social layer, validators are the signing set." />
+      <PageHeader title="Network" lead="What this server's own node sees. Three layers, three separate numbers — they are never added together: consensus peers are CometBFT connections, P2P peers are libp2p connections carrying encrypted Hashgram One traffic and public events, validators are the signing set." />
       <Show when={!q.error()} fallback={<ErrorState error={q.error()} retry={q.refetch} />}>
         <Show when={n()} fallback={<Skeleton rows={8} />}>
           {(net) => (

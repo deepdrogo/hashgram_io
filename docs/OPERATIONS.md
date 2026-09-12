@@ -219,68 +219,6 @@ filter series out rather than yielding zero, so adding the three tier terms
 produced an empty vector and the panel read "No data" at every sequence below
 10,000.
 
-## The explorer VPS (hashgram.io)
-
-The public site runs on its own full node — the "explorer VPS" — separate
-from any validator. It follows Mainnet through the seed list compiled into
-the binaries and keeps working if the genesis host disappears. Nothing in
-`web/` or `indexer/` names a specific machine.
-
-| Component | Listens | Unit |
-| --- | --- | --- |
-| `hashgramd` (full node) | 26656 public; 26657 / 1317 / 9091 loopback | `hashgramd` |
-| `hashgram-node` (P2P, role `indexer`, no earning role) | 26670 public; 26672 loopback | `hashgram-node` |
-| PostgreSQL | 5432 loopback | `postgresql` |
-| `hashgram-indexer` (read API + SSE) | 1318 loopback | `hashgram-indexer` |
-| Caddy (TLS, rate limits, static site, `/api/*` proxy) | 80 / 443 public | `caddy` |
-
-Only Caddy is reachable from the internet; `hashgramctl mainnet-preflight`
-fails if 26657 or 1317 is exposed. `hashgram.io` sits behind Cloudflare
-(SSL mode *Full (strict)*); Caddy holds its own Let's Encrypt certificate and
-trusts `CF-Connecting-IP` only from Cloudflare's published ranges.
-
-Install and update:
-
-```bash
-apt install -y postgresql make                       # the bootstrap script expects both
-sudo scripts/install/bootstrap-ubuntu.sh
-hashgramctl init --moniker hashgram-io
-hashgramctl join-mainnet                             # no arguments: genesis, pin and seeds are built in
-hashgramctl configure-role indexer
-hashgramctl start                                    # hashgramd + hashgram-node + hashgram-indexer
-hashgramctl chain-status                             # wait for catching_up = false, peers > 0
-sudo scripts/install/install-hashgram-io.sh          # web build, Caddy, ufw 80/443, preflight; idempotent
-```
-
-Daily checks:
-
-```bash
-hashgramctl chain-status                    # catching_up=false, peers>0
-curl -s 127.0.0.1:1318/v1/health            # status ok, lag_blocks small, live_source websocket
-systemctl status caddy hashgram-indexer hashgram-node hashgramd --no-pager
-ss -ltn                                     # non-loopback: 22 80 443 26656 26670 only
-df -h /var/lib/hashgram /var/lib/postgresql # chain and index grow; act at 80 %
-```
-
-`https://hashgram.io/status` shows the same facts publicly.
-
-Runbooks:
-
-- **Indexer behind** — `journalctl -u hashgram-indexer -f`. It backfills from
-  `index_state` to the head without sleeping. `hashgram-indexer check`
-  verifies that `blocks` holds every height up to the cursor and re-indexes
-  gaps (`--fix` is the default).
-- **Rebuild the index** — `systemctl stop hashgram-indexer && hashgram-indexer rebuild --config /etc/hashgram/indexer.toml && systemctl start hashgram-indexer`.
-  The database is a cache; the result is identical.
-- **Certificate** — Caddy renews automatically over HTTP-01. If the
-  Cloudflare zone has *Always Use HTTPS* on, set `CF_API_TOKEN` (Zone:DNS:Edit)
-  in `/etc/hashgram/caddy.env` and re-run the publish script (DNS-01).
-- **Logs** — `/var/log/caddy/*.log` (JSON; client addresses masked to /24 and
-  /48, Cloudflare headers removed) and `journalctl -u hashgram-indexer`.
-- **Backups** — nothing on this host is precious: chain data and the index are
-  rebuilt from the network, the site and the Caddy configuration are in git.
-  The full rebuild procedure with timings is in `web/README.md`.
-
 ## Backups
 
 ```bash

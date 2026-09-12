@@ -5,12 +5,13 @@
 <h1 align="center">hashgram.io</h1>
 
 <p align="center">
-  <strong>The official live explorer, network dashboard and documentation for Hashgram Mainnet.</strong><br>
-  Strict monochrome. Read-only. Every number comes from the server's own full node.
+  <strong>Hashgram One product guide, live explorer and documentation.</strong><br>
+  One identity. One inbox. One vault. One network.
 </p>
 
 <p align="center">
   <a href="https://hashgram.io">hashgram.io</a> ·
+  <a href="https://hashgram.io/one">Hashgram One</a> ·
   <a href="https://hashgram.io/api/v1/docs">API reference</a> ·
   <a href="https://hashgram.io/docs">Documentation</a> ·
   <a href="https://hashgram.io/brand">Brand kit</a> ·
@@ -32,9 +33,20 @@
 
 ## What this is
 
-**Hashgram** is a Layer-1 blockchain (Cosmos SDK / CometBFT, chain-id `hashgram-1`, launched 10 September 2026) with a fixed supply of 1,000,000,000 HASH, **useful-service rewards** for storage, relay and media nodes instead of mining, a 1 % founder revenue share with a hardcoded ceiling, on-chain usernames and a peer-to-peer social and messaging layer.
+**Hashgram One** is a private communication and storage platform: Mail, Drive, People, Feed, Spaces, Earn, Wallet and Network over one identity. Native application payloads travel inside MLS ciphertext; nodes store and relay what they cannot read. The chain holds only global-consensus facts such as identity keys, usernames, balances, providers and governance.
 
-**hashgram.io** is the website that lets anyone watch it: a block explorer, a network dashboard and the rendered documentation, all updating live. This repository contains the website, its API contract, the Caddy configuration and the installer that publish it. The chain, the node and the indexer that serves the API live in the main repository, [deepdrogo/hashgram](https://github.com/deepdrogo/hashgram).
+Underneath it is Hashgram Mainnet: a Cosmos SDK / CometBFT Layer-1 (`hashgram-1`, launched 10 September 2026) with a fixed supply of 1,000,000,000 HASH, useful-service rewards instead of mining and a hard-capped 1 % founder share of protocol fee revenue.
+
+**hashgram.io** explains the product and provides the official read-only explorer, network dashboard and rendered documentation, all updating from its own full node. This repository contains the companion website, API contract, Caddy configuration and publisher. The chain, P2P node, Hashgram One protocol and SDK, CLI, indexer and optional mail gateway live in [deepdrogo/hashgram](https://github.com/deepdrogo/hashgram).
+
+### Hashgram One today
+
+- **Implemented:** HashMail, HashDrive, People, Feed, Circles, Spaces, device sync, encrypted local store, backup, wallet/provider/network SDK surfaces and reference CLI.
+- **Mainnet unchanged:** the application transformation made no consensus or tokenomics change; older Mainnet nodes remain interoperable.
+- **Not yet released:** the complete Hashgram One desktop UI. The repository's older v0.1.1 messenger-era desktop is superseded, so this site does not present it as a download.
+- **Not built:** push notifications, group-call E2EE, a Merkle light client and the provider-side long-term storage lease wire flow.
+
+See [the product overview](https://hashgram.io/one), [architecture](https://hashgram.io/docs/hashgram-one-architecture), [HashMail](https://hashgram.io/docs/hashmail) and [HashDrive](https://hashgram.io/docs/hashdrive).
 
 ### Principles
 
@@ -134,7 +146,7 @@ flowchart LR
 - **`deploy/caddy/Caddyfile`** — TLS (Let's Encrypt; DNS-01 through the Cloudflare API when a token is present), `/api/*` proxy with `flush_interval -1` for SSE, rate limits (300 req/min/IP, 30 SSE connections/min/IP, 1 KB body limit), security headers with a strict CSP, zstd/gzip, immutable caching for hashed assets, per-route Open Graph image rewrite, access logs with IPs masked to /24 // /48 and Cloudflare headers removed.
 - **`deploy/systemd/caddy.service`** — hardened unit (strict filesystem, no new privileges, syscall filter, only `CAP_NET_BIND_SERVICE`).
 - **`scripts/install/install-hashgram-io.sh`** — idempotent publisher: Node 22 + pnpm, `pnpm build`, sync and precompress `dist/`, install a Caddy build with the required modules, install config and unit, open only 80/443 in ufw, enable units, run `hashgramctl mainnet-preflight` and fail if it fails.
-- **`docs/`** — a snapshot of the public protocol documentation from the main repository, rendered under `/docs`.
+- **`docs/`** — a snapshot of the public Hashgram One, protocol, security and operations documentation from the main repository, rendered under `/docs`.
 
 ### The read API
 
@@ -213,7 +225,7 @@ pnpm test:e2e    # Playwright — every pixel of every route monochrome (dark + 
 pnpm lhci        # Lighthouse — performance ≥ 95, accessibility 100, best practices 100, SEO 100, CLS ≤ 0.02
 ```
 
-Current results: 61/61 colour and accessibility tests, 22/22 mobile layout tests, 14/14 unit tests, Lighthouse 100 / 100 / 100 / 100 with zero layout shift on all twelve routes.
+Current results: 103/103 Playwright checks (colour, accessibility, live behaviour and mobile layout) and 14/14 unit tests. The existing explorer routes retain their Lighthouse 100 / 100 / 100 / 100 baseline.
 
 ---
 
@@ -224,7 +236,7 @@ web/                     the SolidJS site (see web/README.md)
   src/routes/            one file per page
   src/lib/               typed API client, BigInt formatting, live store, genesis pin
   src/components/        layout, search, values, monochrome charts, ui primitives
-  content/               web-native docs: what is Hashgram, run a node, API, explorer guide, short links, FAQ, glossary
+  content/               product guide plus web-native explorer, API, node, FAQ and glossary pages
   scripts/               build-docs, build-brand, build-og, check-palette
   tests/                 unit, e2e, deterministic mock API
 indexer/openapi.yaml     the API contract (implementation: deepdrogo/hashgram → indexer/)

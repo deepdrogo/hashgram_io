@@ -17,7 +17,7 @@ hashgramctl node-info            # what this machine is configured for
 | `relay` | `hashgram-node` | Forwards encrypted envelopes and gossip, serves circuit relay | client-signed relay receipts |
 | `store` | `hashgram-node` | Holds mailboxes, key packages and blobs; answers storage challenges | storage assignments × challenges, retrieval receipts |
 | `media` | `hashgram-node` | Serves media manifests and chunks | retrieval receipts |
-| `indexer` | `hashgram-indexer` + `hashgram-node` (no earning role) | PostgreSQL index of chain and public social data; the P2P node follows public social events for the projections | nothing (an operator service) |
+| `indexer` | `hashgram-indexer` | PostgreSQL index of chain and public social data | nothing (an operator service) |
 | `bootstrap` | `hashgram-node` | Helps new nodes find peers, serves circuit relay | relay receipts |
 | `call` | `hashgram-node` + `coturn` (+ LiveKit) | TURN credentials, announcements, optional SFU | call receipts |
 | `safety` | `hashgram-safety` | Reviews public content, signs verdicts | nothing (an operator service) |

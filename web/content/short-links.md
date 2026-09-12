@@ -1,6 +1,6 @@
 # Short links and integration
 
-Applications — wallets, the desktop and mobile clients, bots — can link
+Applications — the reference CLI, future desktop/mobile clients and bots — can link
 straight into the explorer with nothing more than an identifier appended to
 the site root. The site resolves it and redirects to the canonical page.
 
@@ -25,7 +25,7 @@ Canonical routes, if you prefer to build them yourself:
 Transaction hashes are case-insensitive; the canonical form is upper-case
 hex, exactly as CometBFT prints it.
 
-## From a Windows or mobile app
+## From a client application
 
 After broadcasting a transaction you already have its hash. Open
 

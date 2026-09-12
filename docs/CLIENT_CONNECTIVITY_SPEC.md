@@ -380,6 +380,30 @@ cannot be fed a fork's data — learns the nodes' roles, and then:
 | Upload and download media, private encryption | blob bodies; DHT providers | `hashgram_sdk::blob` |
 | Find call nodes, get TURN credentials, signal | `AnnounceQuery`, `TurnCredentialRequest`; MLS `CallSignal` | `hashgram_sdk::calls` |
 | Pay providers for service | `ReceiptDeliver` | automatic in the SDK |
+| Read the chain and broadcast transactions with no REST endpoint | `ChainQuery`, `ChainBroadcast` (served by `relay`/`bootstrap` nodes; allow-listed read paths only) | `hashgram_sdk::chain_relay`, `hashgram_sdk::chain_client_over_link` |
+
+### Chain access without a server
+
+`ChainClient` (`hashgram_chain::Client`) works over a pluggable transport:
+HTTP to a REST gateway (§3–§4 above), or the P2P chain relay. Over the
+relay every read is issued to **two nodes run by different operators** and
+compared byte for byte after JSON normalisation, with heights within 3
+blocks; a mismatch marks both nodes disputed and asks a third. The result
+carries a `Verification` (which peers answered, whether they agreed,
+whether only one operator was reachable) for the UI to show as "verified by
+2 nodes" or as a warning. `simulate` is not available over the relay, so the
+client estimates gas instead of asking. `hashgram-client` uses the relay
+whenever `chain_api` is empty, which is the default:
+
+```text
+hashgram-client configure --network mainnet --genesis-hash <hash>   # no --chain-api
+hashgram-client wallet balance                                    # "verified by 2 nodes (2 operators)"
+```
+
+The precedence an application should use, each with a live health
+indicator: a node on the same machine (`127.0.0.1`), then the P2P relay
+across ≥ 2 nodes, then HTTPS endpoints the user pasted. Never a single
+hardcoded hostname as the only way in.
 
 `hashgram-sdk` (`sdk/rust/hashgram-sdk`) implements all of it and
 `hashgram-client` (`node/hashgram-client`) is the reference command line on
@@ -410,60 +434,14 @@ API on `127.0.0.1:1318` serves feeds (`docs/SOCIAL_PROTOCOL.md`,
 reverse-proxy decision, and a client must treat an indexer as a cache it
 can cross-check against events it verifies itself.
 
-### The public read API at hashgram.io
-
-The official site, `https://hashgram.io`, exposes the indexer's **read-only**
-API to the internet at `https://hashgram.io/api/v1/…`. It is served by
-`hashgram-indexer` on the explorer VPS, which reads exclusively from that
-host's own full node (`127.0.0.1`: CometBFT RPC 26657, REST 1317,
-hashgram-node API 26672) — never from the genesis server or any remote RPC.
-The contract is `indexer/openapi.yaml`, served at `/api/v1/openapi.yaml` and
-rendered at `/api/v1/docs`.
-
-Conventions:
-
-| Rule | Detail |
-| --- | --- |
-| Amounts | `uhash` integers as decimal **strings** (`"1000000"` = 1 HASH). Parse with arbitrary precision, never floats. |
-| Lists | `?limit=` (default 20, max 100) and opaque `?cursor=`; responses carry `next_cursor` (`null` at the end). Cursors are positions, so pages stay stable while new rows arrive. |
-| Times | RFC 3339 UTC. |
-| Caching | `Cache-Control` per route: live head `no-store`; blocks and transactions by id `immutable`; parameters for minutes. |
-| Errors | JSON `{"error": "..."}` with the HTTP status. |
-| Limits at the edge | 300 requests/min/IP; 30 SSE (re)connections/min/IP; request bodies over 1 KB rejected. |
-| Limits in the indexer | at most 2,000 concurrent SSE clients and 10 per IP → `503` + `Retry-After`. |
-| Privacy | Peer and visitor addresses are stored and logged as `/24` (IPv4) or `/48` (IPv6) prefixes only (`docs/LOGGING_POLICY.md`). |
-
-Routes: `/chain`, `/health`, `/stats`, `/stats/history`, `/search?q=`;
-`/blocks`, `/blocks/latest`, `/blocks/{height}`; `/txs?type=`, `/txs/types`,
-`/txs/{hash}`; `/accounts/top`, `/accounts/count`, `/accounts/{address}`,
-`/accounts/{address}/transactions`, `/accounts/{address}/transfers`;
-`/validators`, `/validators/{operator}`, `/staking`; `/rewards/params`,
-`/rewards/reserve`, `/rewards/epochs`, `/rewards/providers`,
-`/rewards/providers/{operator}`, `/rewards/welcome`; `/founder`, `/fees`,
-`/treasury`; `/gov/proposals`, `/gov/proposals/{id}`; `/network`,
-`/network/nodes` (three separate numbers — consensus peers, P2P peers,
-validators — never summed); `/live` (Server-Sent Events: `block`, `tx`,
-`stats` every 10 s, `epoch`, `founder_payout`, `proposal`, `heartbeat` every
-15 s; source is the node's CometBFT WebSocket with polling fallback, reported
-in `/health.live_source`). The social routes (`/feed/…`, `/reels…`,
-`/profiles/…`, `/search/users`, `/search/hashtags`) are unchanged.
-
-Short links for applications: `https://hashgram.io/<64-hex tx hash>` opens
-the transaction page; likewise `/<height>`, `/hash1…`, `/hashvaloper1…`,
-`/@username` and `/12D3Koo…`. Canonical routes are `/txs/{hash}`,
-`/blocks/{height}`, `/accounts/{address}`, `/validators/{operator}`,
-`/governance/{id}`; the same resolution is available as JSON at
-`/api/v1/search?q=`.
-
-Two traps specific to this API: `/chain.genesis_hash` comes from the
-`network.json` pin in `/etc/hashgram`, not from RPC `/genesis` (§2), and the
-site compares it with a hardcoded value and disables itself on mismatch; and
-the indexer database is a cache — `hashgram-indexer rebuild` reproduces every
-response, and nothing that is not on chain or in the node API is stored.
-
 ### What still does not exist
 
-- Native applications for Windows, iOS and Android (the prompts describe them).
+- Native applications for iOS and Android (the prompts describe them); the
+  Windows application is being built in `apps/desktop/`.
+- A Merkle-proof light client. The P2P chain relay cross-checks two
+  operators' answers, which removes the single server but does not prove an
+  answer against a block header. Proofs are a later milestone; until then
+  "verified by 2 nodes" means exactly that and no more.
 - Push notifications: clients poll or stay connected.
 - Call receipts from the reference client; a WebRTC media stack in the SDK.
 - End-to-end encryption of SFU-hosted group calls against the SFU operator.

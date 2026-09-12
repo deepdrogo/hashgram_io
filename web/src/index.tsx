@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 import { Skeleton, ErrorState } from './components/ui';
 
 import Home from './routes/Home';
+const One = lazy(() => import('./routes/One'));
 const Blocks = lazy(() => import('./routes/Blocks'));
 const Block = lazy(() => import('./routes/Block'));
 const Txs = lazy(() => import('./routes/Txs'));
@@ -41,6 +42,7 @@ render(
       )}
     >
       <Route path="/" component={Home} />
+      <Route path="/one" component={One} />
       <Route path="/blocks" component={Blocks} />
       <Route path="/blocks/:height" component={Block} />
       <Route path="/txs" component={Txs} />

@@ -4,6 +4,7 @@ export const VAL1 = 'hashvaloper127zemcfnxd3jrldpjzzgcckek4dswyw0l7rfcq';
 
 export const ROUTES: string[] = [
   '/',
+  '/one',
   '/blocks',
   '/blocks/100',
   '/txs',
@@ -20,6 +21,7 @@ export const ROUTES: string[] = [
   '/docs',
   '/docs/run-a-node',
   '/docs/api',
+  '/docs/hashgram-one-architecture',
   '/status',
   '/brand',
   '/this-does-not-exist',

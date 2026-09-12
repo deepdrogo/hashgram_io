@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "hashgram.io \u2014 live block explorer, network dashboard and documentation for Hashgram Mainnet (read-only).",
+  "description": "Hashgram One product site, live Mainnet explorer and documentation (read-only).",
   "scripts": {
     "dev": "vite",
     "gen:api": "openapi-typescript ../indexer/openapi.yaml -o src/generated/api.d.ts",

@@ -95,8 +95,12 @@ export default function Home() {
             <span class="text-4xl font-bold tracking-tight sm:text-5xl">hashgram</span>
           </div>
           <p class="max-w-2xl text-lg text-ink-500">
-            A Layer-1 chain with a fixed supply of 1,000,000,000 HASH, where nodes earn for bytes actually stored and served — not for mining — with on-chain usernames and a peer-to-peer social layer.
+            One identity, inbox and vault on a network nobody centrally controls. Hashgram One brings private mail, encrypted storage, people, feeds and shared spaces to a fixed-supply Layer-1.
           </p>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <A href="/one" class="btn btn-primary">Explore Hashgram One</A>
+            <A href="/docs/what-is-hashgram" class="btn">How it works</A>
+          </div>
           <div class="mt-6">
             <SearchBox large />
           </div>
@@ -164,6 +168,23 @@ export default function Home() {
             </div>
           </Show>
         </div>
+      </section>
+
+      <section class="card mb-10 grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center" aria-label="Hashgram One">
+        <div>
+          <div class="mb-2 flex flex-wrap gap-2">
+            <Badge variant="solid">Hashgram One</Badge>
+            <Badge variant="muted">Mail</Badge>
+            <Badge variant="muted">Drive</Badge>
+            <Badge variant="muted">Spaces</Badge>
+          </div>
+          <h2 class="text-xl font-semibold tracking-tight">The chain is infrastructure. Hashgram One is the product.</h2>
+          <p class="mt-2 max-w-3xl text-sm leading-relaxed text-ink-500">
+            Private application payloads travel inside MLS ciphertext; nodes store and relay what they cannot read. The chain holds only global facts such as identities, usernames, balances and provider records.
+          </p>
+          <p class="mt-2 text-xs text-ink-500">Protocol, SDK and reference CLI implemented. Complete desktop UI is not released yet.</p>
+        </div>
+        <A href="/one" class="btn">Product overview →</A>
       </section>
 
       <section class="mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Key statistics">

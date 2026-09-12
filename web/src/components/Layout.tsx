@@ -1,6 +1,6 @@
 import { type ParentProps, Show, For, createSignal, createMemo } from 'solid-js';
 import { A, useLocation } from '@solidjs/router';
-import { Menu, X, Radio, Boxes, ArrowLeftRight, Wallet, ShieldCheck, Coins, UserRound, Vote, Network as NetworkIcon, BookOpen, Activity, Palette, type LucideProps } from 'lucide-solid';
+import { Menu, X, Radio, Boxes, ArrowLeftRight, Wallet, ShieldCheck, Coins, UserRound, Vote, Network as NetworkIcon, BookOpen, Activity, Palette, Inbox, type LucideProps } from 'lucide-solid';
 import type { Component } from 'solid-js';
 import { useLive } from '../lib/live';
 import { MAINNET_GENESIS_SHA256 } from '../lib/genesis';
@@ -20,6 +20,7 @@ export function Github(props: { class?: string; 'aria-hidden'?: boolean | 'true'
 }
 
 const NAV: Array<{ href: string; label: string; icon: Component<LucideProps> }> = [
+  { href: '/one', label: 'Hashgram One', icon: Inbox },
   { href: '/blocks', label: 'Blocks', icon: Boxes },
   { href: '/txs', label: 'Transactions', icon: ArrowLeftRight },
   { href: '/accounts', label: 'Accounts', icon: Wallet },
@@ -88,7 +89,7 @@ export function Layout(props: ParentProps) {
           <A href="/" class="shrink-0" aria-label="Hashgram home">
             <Wordmark height={20} />
           </A>
-          <nav class="hidden flex-1 items-center gap-0.5 lg:flex" aria-label="Primary">
+          <nav class="hidden flex-1 items-center gap-0.5 xl:flex" aria-label="Primary">
             <For each={NAV}>
               {(n) => (
                 <A href={n.href} class={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${active(n.href) ? 'bg-ink-900 font-medium' : 'text-ink-500 hover:text-white'}`} aria-current={active(n.href) ? 'page' : undefined}>
@@ -125,7 +126,7 @@ export function Layout(props: ParentProps) {
                 <Github class="size-4" aria-hidden="true" />
               </a>
             </div>
-            <button class="btn size-9 justify-center px-0 lg:hidden" aria-label={open() ? 'Close menu' : 'Open menu'} aria-expanded={open()} onClick={() => setOpen(!open())}>
+            <button class="btn size-9 justify-center px-0 xl:hidden" aria-label={open() ? 'Close menu' : 'Open menu'} aria-expanded={open()} onClick={() => setOpen(!open())}>
               <Show when={open()} fallback={<Menu class="size-4" aria-hidden="true" />}>
                 <X class="size-4" aria-hidden="true" />
               </Show>
@@ -133,7 +134,7 @@ export function Layout(props: ParentProps) {
           </div>
         </div>
         <Show when={open()}>
-          <nav class="border-t border-ink-900 px-4 py-3 lg:hidden" aria-label="Primary mobile">
+          <nav class="border-t border-ink-900 px-4 py-3 xl:hidden" aria-label="Primary mobile">
             <SearchBox class="mb-3" />
             <ul class="grid grid-cols-2 gap-1">
               <For each={NAV}>
@@ -174,8 +175,8 @@ export function Layout(props: ParentProps) {
         <div class="mx-auto grid max-w-7xl gap-6 px-4 py-8 text-sm text-ink-500 md:grid-cols-3">
           <div>
             <Wordmark height={16} class="text-white" />
-            <p class="mt-2 max-w-xs text-xs">Live explorer, network dashboard and documentation for Hashgram Mainnet (<span class="font-mono">hashgram-1</span>). Every number on this site is read from this server's own full node.</p>
-            <p class="mt-2 max-w-xs text-xs">Hashgram is open source. The chain, the node, this site and the API are developed in the official repository at <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="text-white hover:underline">github.com/deepdrogo/hashgram</a>.</p>
+            <p class="mt-2 max-w-xs text-xs">Hashgram One is private mail, storage and shared spaces on Hashgram Mainnet. This site is its live explorer, network dashboard and documentation.</p>
+            <p class="mt-2 max-w-xs text-xs">The protocol, chain, node, SDK and indexer are open source at <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="text-white hover:underline">github.com/deepdrogo/hashgram</a>.</p>
           </div>
           <div class="text-xs">
             <p class="font-medium text-white">Read-only</p>
@@ -188,6 +189,9 @@ export function Layout(props: ParentProps) {
             <a href={`${GITHUB_URL}/tree/main/docs`} target="_blank" rel="noopener noreferrer" class="inline-block py-1 hover:text-white">
               Protocol documentation (repository)
             </a>
+            <A href="/one" class="inline-block py-1 hover:text-white">
+              Hashgram One
+            </A>
             <A href="/status" class="inline-block py-1 hover:text-white">
               Status
             </A>

@@ -6,7 +6,7 @@ import { Empty, Skeleton } from '../components/ui';
 import { SearchBox } from '../components/Search';
 
 /**
- * Short links. Any client (for example the Windows app) can open
+ * Short links. Any Hashgram client can open
  *   hashgram.io/<64-hex tx hash>   → /txs/<hash>
  *   hashgram.io/<height>           → /blocks/<height>
  *   hashgram.io/hash1…             → /accounts/…

@@ -15,7 +15,8 @@ const W = 1200;
 const H = 630;
 
 const PAGES: Array<{ id: string; title: string; sub: string }> = [
-  { id: 'default', title: 'hashgram', sub: 'Live explorer, network dashboard and documentation for Hashgram Mainnet.' },
+  { id: 'default', title: 'Hashgram One', sub: 'One identity. One inbox. One vault. One network.' },
+  { id: 'one', title: 'Hashgram One', sub: 'Private mail, encrypted storage and shared spaces on Mainnet.' },
   { id: 'blocks', title: 'Blocks', sub: 'Every block, live from this site\u2019s own node.' },
   { id: 'txs', title: 'Transactions', sub: 'Decoded messages, fees and where they went.' },
   { id: 'accounts', title: 'Accounts', sub: 'Top holders, module accounts, vesting.' },

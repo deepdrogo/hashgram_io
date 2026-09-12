@@ -37,11 +37,26 @@ beneficiary address every 7,200 blocks. Not a transfer tax; never minted.
 **HASH / uhash** — the token and its smallest unit: 1 HASH = 1,000,000 uhash.
 Supply is fixed at 1,000,000,000 HASH.
 
+**HashDrive** — files encrypted on the client in authenticated segments,
+stored as ciphertext and shared through capabilities.
+
+**HashMail** — end-to-end encrypted native mail carried as application
+messages inside MLS groups. External Internet e-mail may cross a gateway and
+is explicitly labelled as not end-to-end.
+
+**Hashgram One** — the consumer product over Hashgram: Mail, Drive, People,
+Feed, Spaces, Earn, Wallet and Network.
+
 **Indexer** — the service that copies chain data into PostgreSQL and serves
 the read API behind this site. A cache; rebuildable at any time.
 
-**libp2p / P2P peer** — the second network layer, where social events, media
-and calls travel between nodes. Distinct from consensus peers.
+**libp2p / P2P peer** — the second network layer, where encrypted application
+traffic, public social events and blobs travel between nodes. Distinct from
+consensus peers.
+
+**MLS** — Messaging Layer Security, the group encryption protocol that
+protects native application messages. Nodes relay MLS ciphertext without
+holding a master key.
 
 **Module account** — an address owned by a chain module, not by a person:
 the useful-service reserve, the treasury sub-accounts, the founder revenue
@@ -59,6 +74,10 @@ providers. Each epoch releases at most min(remaining × 5⁄10,000, 250,000).
 **Signature (in a block)** — a validator's vote on the previous block,
 included in the next block's commit. Missing signatures count against
 uptime.
+
+**Space** — a private MLS group with a signed role log, group mail, posts,
+announcements and shared Drive capabilities. Nothing about a Space is on
+chain.
 
 **Slashing** — burning part of a validator's stake for downtime or
 double-signing, with a jail period.

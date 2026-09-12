@@ -23,7 +23,7 @@ server's own indexer, behind Caddy at `https://hashgram.io/api/v1/…`.
 
 ## Short links
 
-Any client — including the Windows app — can deep-link into the explorer by
+Any Hashgram client can deep-link into the explorer by
 appending an identifier to the site root; the site resolves it and redirects:
 
 | URL                                   | Opens                    |

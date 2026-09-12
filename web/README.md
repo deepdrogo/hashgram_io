@@ -1,9 +1,10 @@
 # hashgram.io — the website
 
-Live block explorer, network dashboard and documentation for Hashgram Mainnet
-(`hashgram-1`). Read-only. Every number comes from the read API served by
-`hashgram-indexer` on the same host, which reads only from this host's own full
-node.
+Hashgram One product guide, live explorer, network dashboard and documentation
+for Hashgram Mainnet (`hashgram-1`). The `/one` route explains the implemented
+Mail/Drive/People/Feed/Spaces platform and its honest release status. Explorer
+functions remain read-only: every number comes from `hashgram-indexer` on the
+same host, reading only from this host's own full node.
 
 - Stack: **SolidJS 1.9 + TypeScript + Vite 8 + @solidjs/router**, Tailwind v4
   with a seven-value monochrome palette, Lucide icons, d3 primitives for
@@ -33,7 +34,7 @@ web/
   src/components/            Layout, Search, values (Hash/Amount/TimeAgo), charts, ui
   src/routes/                one file per page
   src/generated/             api.d.ts (openapi-typescript), docs-index.json
-  content/                   web-native docs: what-is-hashgram, run-a-node, api
+  content/                   web-native product, node, explorer, API, FAQ and glossary docs
   scripts/                   build-docs, build-brand, build-og, check-palette
   brand/README.md            brand rules (shipped inside the kit)
   public/brand/              generated logo kit (do not edit by hand)

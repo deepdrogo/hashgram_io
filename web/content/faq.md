@@ -1,5 +1,30 @@
 # Frequently asked questions
 
+## What changed?
+
+Hashgram is no longer framed as a social network with a blockchain attached.
+**Hashgram One** is a private communication and storage platform: Mail,
+Drive, People, Feed, Spaces, Earn, Wallet and Network over one identity. The
+existing Mainnet chain and libp2p swarm remain the infrastructure; this
+transformation required no consensus or tokenomics change.
+
+## Can I download Hashgram One?
+
+Not as a complete desktop product yet. The application protocol, Rust SDK,
+reference CLI and the Mail/Drive/People/Feed/Circles/Spaces flows are
+implemented and tested, but the full Hashgram One desktop UI is still to be
+built. The old v0.1.1 desktop application is messenger-era software and is
+superseded. Use the [CLI quick start](https://github.com/deepdrogo/hashgram#quick-start)
+for the implemented interface.
+
+## Can nodes read my mail or files?
+
+No. Native application payloads travel inside MLS ciphertext and Drive files
+are encrypted on the device. A store node can see limited metadata such as a
+mailbox id, object size and time, but not a mail subject, body, filename,
+folder tree or Space event. Internet e-mail crossing a gateway is different:
+the gateway necessarily sees that external plaintext, and clients label it.
+
 ## Is there mining?
 
 No. Hashgram has no proof-of-work and no block subsidy. Validators finalise
@@ -21,7 +46,7 @@ what is actually being paid.
 
 ## What does the founder get?
 
-Two things: a genesis allocation (20,000,000 HASH unlocked, 180,000,000 HASH
+Two things: a genesis allocation (19,000,000 HASH spendable, 180,000,000 HASH
 vesting over 96 months) and 1 % of protocol fee revenue, capped in the
 binary. No transfer tax, no minting. Live figures on [/founder](/founder).
 
@@ -36,11 +61,11 @@ Because they are three different things: CometBFT consensus peers, libp2p
 P2P peers and the validator set. Adding them would count machines twice and
 mean nothing. See [/network](/network).
 
-## Does this site have a wallet?
+## Does this site have the Hashgram One wallet?
 
-No. It is read-only: no keys, no signing, no broadcasting, no prices. Use a
-client application for that; link back here with a
-[short link](/docs/short-links).
+No. Hashgram One includes a wallet surface, but **hashgram.io remains
+read-only**: no keys, signing, broadcasting or prices. The client can link
+back here with a [short link](/docs/short-links) to verify public chain data.
 
 ## Can I trust the numbers?
 

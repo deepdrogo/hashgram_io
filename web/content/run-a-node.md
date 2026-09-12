@@ -44,13 +44,15 @@ not `e322bc23…5e4d`, stop.
 ## 3. Choose what your node does
 
 ```bash
-hashgramctl configure-role storage     # store encrypted data, earn per GiB-epoch
-hashgramctl configure-role relay       # forward messages and media
-hashgramctl configure-role media       # serve retrievals and relay calls
-hashgramctl configure-role indexer     # follow social events (no rewards)
+hashgramctl configure-role relay,store,media \
+  --declared-storage 500000000000 \
+  --reward-address hash1<your-cold-address>
+hashgramctl configure-role indexer     # public read model; no rewards
 ```
 
 Roles can be combined. A plain full node with no role just follows the chain.
+Store and relay nodes carry HashMail envelopes, encrypted Drive objects and
+other Hashgram One traffic without decrypting private application payloads.
 
 ## 4. Start and watch
 
@@ -63,8 +65,9 @@ hashgramctl mainnet-preflight     # must pass before you rely on the node
 
 ## Earning
 
-To be paid you must **register as a provider** (bond 1,000 HASH, declare your
-storage, set a reward address) and then actually serve traffic. Credit is
+To be paid, fund the operator address printed by `configure-role` with at
+least 1,000 HASH for the bond plus fees, then set
+`auto_register_provider = true` in `/etc/hashgram/node.toml`. Credit is
 earned per epoch for storage (100 / GiB·epoch), relay (200 / GiB), retrieval
 (150 / GiB) and calls (300 / hour); the epoch budget is split by credit and
 capped at 5 % per provider.

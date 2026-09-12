@@ -274,8 +274,9 @@ export function Table(props: ParentProps<{ class?: string }>) {
     };
     queueMicrotask(label);
     const mo = new MutationObserver(() => label());
-    const body = table.querySelector('tbody');
-    if (body) mo.observe(body, { childList: true });
+    // Async routes can replace the initial <tbody>; observe the table so live
+    // prepends and replacement bodies both receive mobile data labels.
+    mo.observe(table, { childList: true, subtree: true });
     onCleanup(() => mo.disconnect());
   };
   return (

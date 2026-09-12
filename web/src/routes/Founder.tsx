@@ -78,7 +78,7 @@ export default function FounderPage() {
                       <div class="rounded-md border border-ink-900 p-3">
                         <div class="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink-500"><Lock class="size-3" aria-hidden="true" /> Vesting</div>
                         <div class="mt-1 text-lg font-semibold tabular"><Amount uhash={fd().vesting?.original_uhash ?? '0'} maxFraction={0} /></div>
-                        <div class="text-[11px] text-ink-500">{fd().vesting?.periods.length ?? 0} monthly periods</div>
+                        <div class="text-[11px] text-ink-500">{fd().vesting?.periods.length ?? 0} periods · monthly</div>
                       </div>
                       <div class="rounded-md border border-ink-900 p-3">
                         <div class="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink-500"><CalendarClock class="size-3" aria-hidden="true" /> Released so far</div>

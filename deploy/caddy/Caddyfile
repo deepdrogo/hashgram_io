@@ -159,9 +159,13 @@ hashgram.io {
 	handle {
 		root * /var/www/hashgram-io
 
-		# Hashed assets and generated images are immutable; HTML is not cached.
-		@immutable path /assets/* /brand/* /og/* /docs-content/*
+		# Only Vite's content-hashed bundles are immutable. Generated docs, OG
+		# images and brand files keep stable names and must revalidate on deploy.
+		@immutable path /assets/*
 		header @immutable Cache-Control "public, max-age=31536000, immutable"
+		@generated path /brand/* /og/* /docs-content/* /robots.txt /sitemap.xml /manifest.webmanifest
+		header @generated Cache-Control "public, max-age=0, must-revalidate"
+		header /deployment.json Cache-Control "no-store"
 		@html {
 			not path /assets/* /brand/* /og/* /docs-content/*
 			not file

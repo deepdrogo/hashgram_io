@@ -157,7 +157,9 @@ export default function Docs() {
   const slug = createMemo(() => (params.slug || 'what-is-hashgram').replace(/\/+$/, ''));
   const meta = createMemo(() => INDEX.pages.find((p) => p.slug === slug()));
   const [content] = createResource(slug, async (s): Promise<PageContent | null> => {
-    const r = await fetch(`/docs-content/${s}.json`);
+    // Generated docs used to be served as immutable under stable filenames.
+    // The build id busts any such legacy cache while Caddy now revalidates them.
+    const r = await fetch(`/docs-content/${s}.json?v=${encodeURIComponent(INDEX.generated)}`);
     if (r.status === 404) return null;
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return (await r.json()) as PageContent;

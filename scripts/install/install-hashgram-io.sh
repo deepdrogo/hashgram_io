@@ -67,6 +67,9 @@ log "building web/"
 )
 install -d -m 0755 "$WEB_ROOT"
 rsync -a --delete "$REPO_ROOT/web/dist/" "$WEB_ROOT/"
+DEPLOY_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+printf '{"commit":"%s","deployed_at":"%s"}\n' "$DEPLOY_COMMIT" "$DEPLOYED_AT" >"$WEB_ROOT/deployment.json"
 # precompress for `file_server precompressed` (zstd + gzip; brotli if available)
 find "$WEB_ROOT" -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' -o -name '*.svg' -o -name '*.json' -o -name '*.xml' -o -name '*.txt' -o -name '*.webmanifest' \) -print0 |
   while IFS= read -r -d '' f; do

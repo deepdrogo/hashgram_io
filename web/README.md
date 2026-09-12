@@ -118,7 +118,37 @@ It builds `web/`, syncs and precompresses `dist/`, installs a Caddy build with
 the needed modules, installs `deploy/caddy/Caddyfile` and
 `deploy/systemd/caddy.service`, opens **only** 80/443 in ufw, enables the
 units and runs `hashgramctl mainnet-preflight` (failing if it fails).
-Re-run it after every `git pull`.
+It also writes `/deployment.json` with the exact deployed commit.
+
+### Automatic deployment
+
+`.github/workflows/deploy.yml` runs after a successful `main` CI workflow
+(and supports a manual dispatch). It fast-forwards the clean production
+checkout to the tested commit, runs the same installer through SSH, then
+requires `https://hashgram.io/deployment.json` to report that exact SHA.
+
+Configure the GitHub `production` environment with:
+
+| Name | Kind | Meaning |
+| --- | --- | --- |
+| `DEPLOY_HOST` | secret | Explorer VPS hostname or IP |
+| `DEPLOY_USER` | secret | SSH user with passwordless sudo for the installer |
+| `DEPLOY_SSH_KEY` | secret | Dedicated private deployment key |
+| `DEPLOY_KNOWN_HOSTS` | secret | Pinned `known_hosts` line for the VPS |
+| `DEPLOY_PORT` | variable, optional | SSH port; defaults to `22` |
+| `DEPLOY_PATH` | variable, optional | Clean `hashgram_io` checkout; defaults to `/home/hashgram_io` |
+
+Until these are configured, deploy manually on the VPS:
+
+```bash
+cd /home/hashgram_io
+git pull --ff-only origin main
+sudo ./scripts/install/install-hashgram-io.sh
+curl -fsS https://hashgram.io/deployment.json
+```
+
+The returned `commit` must equal `git rev-parse HEAD`. A repository push by
+itself does not publish this static site.
 
 ### Cloudflare
 
@@ -138,6 +168,9 @@ settings:
 - HTTP/3 is terminated at Cloudflare; the origin speaks HTTP/2 to Cloudflare.
 - Rate limiting and the `/24` access logs use `CF-Connecting-IP` only when the
   request comes from Cloudflare's published ranges (`trusted_proxies cloudflare`).
+- Only Vite's content-hashed `/assets/*` files are cached as immutable.
+  Stable-name docs, OG and brand outputs revalidate on every request; HTML is
+  `no-cache` and `/deployment.json` is `no-store`. There is no service worker.
 
 DNS: `hashgram.io` A → this VPS's IPv4 (and AAAA if you want), `www` CNAME →
 `hashgram.io`. The genesis server is not involved anywhere.

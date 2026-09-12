@@ -1,6 +1,6 @@
 import { type ParentProps, Show, For, createSignal, createMemo } from 'solid-js';
 import { A, useLocation } from '@solidjs/router';
-import { Menu, X, Radio, Boxes, ArrowLeftRight, Wallet, ShieldCheck, Coins, UserRound, Vote, Network as NetworkIcon, BookOpen, Activity, Palette, Inbox, type LucideProps } from 'lucide-solid';
+import { Menu, X, Radio, Boxes, ArrowLeftRight, Wallet, ShieldCheck, Coins, UserRound, Vote, Network as NetworkIcon, BookOpen, Activity, Palette, Inbox, ChevronDown, type LucideProps } from 'lucide-solid';
 import type { Component } from 'solid-js';
 import { useLive } from '../lib/live';
 import { MAINNET_GENESIS_SHA256 } from '../lib/genesis';
@@ -19,7 +19,9 @@ export function Github(props: { class?: string; 'aria-hidden'?: boolean | 'true'
   );
 }
 
-const NAV: Array<{ href: string; label: string; icon: Component<LucideProps> }> = [
+type NavItem = { href: string; label: string; icon: Component<LucideProps> };
+
+const NAV: NavItem[] = [
   { href: '/one', label: 'Hashgram One', icon: Inbox },
   { href: '/blocks', label: 'Blocks', icon: Boxes },
   { href: '/txs', label: 'Transactions', icon: ArrowLeftRight },
@@ -31,6 +33,59 @@ const NAV: Array<{ href: string; label: string; icon: Component<LucideProps> }> 
   { href: '/network', label: 'Network', icon: NetworkIcon },
   { href: '/docs', label: 'Docs', icon: BookOpen },
 ];
+
+const DESKTOP_PRIMARY = NAV.filter((item) => ['/one', '/validators', '/rewards', '/governance', '/network', '/docs'].includes(item.href));
+const DESKTOP_EXPLORER = NAV.filter((item) => ['/blocks', '/txs', '/accounts'].includes(item.href));
+const DESKTOP_MORE: NavItem[] = [
+  NAV.find((item) => item.href === '/founder')!,
+  { href: '/status', label: 'Status', icon: Activity },
+  { href: '/brand', label: 'Brand', icon: Palette },
+];
+
+function DesktopNavGroup(props: { label: string; items: NavItem[]; active: (href: string) => boolean }) {
+  let menu: HTMLDetailsElement | undefined;
+  const groupActive = () => props.items.some((item) => props.active(item.href));
+  const close = () => menu?.removeAttribute('open');
+
+  return (
+    <details
+      ref={menu}
+      class="group relative"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          close();
+          menu?.querySelector('summary')?.focus();
+        }
+      }}
+      onFocusOut={(event) => {
+        if (!menu?.contains(event.relatedTarget as Node | null)) close();
+      }}
+    >
+      <summary
+        class={`inline-flex cursor-pointer list-none items-center gap-1 rounded-md px-2.5 py-1.5 text-sm [&::-webkit-details-marker]:hidden ${groupActive() ? 'bg-ink-900 font-medium' : 'text-ink-500 hover:text-white'}`}
+        aria-label={`${props.label} menu`}
+      >
+        {props.label}
+        <ChevronDown class="size-3 transition-transform group-open:rotate-180" aria-hidden="true" />
+      </summary>
+      <div class="absolute left-0 top-full z-50 mt-2 min-w-48 rounded-lg border border-ink-800 bg-black p-1 shadow-xl">
+        <For each={props.items}>
+          {(item) => (
+            <A
+              href={item.href}
+              class={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${props.active(item.href) ? 'bg-ink-900 font-medium' : 'text-ink-500 hover:bg-ink-950 hover:text-white'}`}
+              aria-current={props.active(item.href) ? 'page' : undefined}
+              onClick={close}
+            >
+              <item.icon class="size-4 shrink-0" aria-hidden="true" />
+              {item.label}
+            </A>
+          )}
+        </For>
+      </div>
+    </details>
+  );
+}
 
 export function LiveDot(props: { withLabel?: boolean }) {
   const { store } = useLive();
@@ -85,12 +140,12 @@ export function Layout(props: ParentProps) {
       </a>
       <Banner />
       <header class="sticky top-0 z-40 border-b border-ink-900 bg-black/90 backdrop-blur">
-        <div class="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
+        <div class="mx-auto flex h-14 max-w-[96rem] items-center gap-3 px-4">
           <A href="/" class="shrink-0" aria-label="Hashgram home">
             <Wordmark height={20} />
           </A>
-          <nav class="hidden flex-1 items-center gap-0.5 xl:flex" aria-label="Primary">
-            <For each={NAV}>
+          <nav class="hidden min-w-0 flex-1 items-center gap-0.5 xl:flex" aria-label="Primary">
+            <For each={DESKTOP_PRIMARY.slice(0, 1)}>
               {(n) => (
                 <A href={n.href} class={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${active(n.href) ? 'bg-ink-900 font-medium' : 'text-ink-500 hover:text-white'}`} aria-current={active(n.href) ? 'page' : undefined}>
                   <n.icon class="size-3.5 shrink-0" aria-hidden="true" />
@@ -98,10 +153,20 @@ export function Layout(props: ParentProps) {
                 </A>
               )}
             </For>
+            <DesktopNavGroup label="Explorer" items={DESKTOP_EXPLORER} active={active} />
+            <For each={DESKTOP_PRIMARY.slice(1)}>
+              {(n) => (
+                <A href={n.href} class={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm ${active(n.href) ? 'bg-ink-900 font-medium' : 'text-ink-500 hover:text-white'}`} aria-current={active(n.href) ? 'page' : undefined}>
+                  <n.icon class="size-3.5 shrink-0" aria-hidden="true" />
+                  {n.label}
+                </A>
+              )}
+            </For>
+            <DesktopNavGroup label="More" items={DESKTOP_MORE} active={active} />
           </nav>
           <div class="ml-auto flex items-center gap-3">
             <Show when={!isHome()}>
-              <SearchBox class="hidden w-72 md:block" />
+              <SearchBox class="hidden w-56 2xl:block" />
             </Show>
             <div class="flex items-center gap-2 sm:hidden">
               <Show when={store.head}>

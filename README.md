@@ -146,6 +146,7 @@ flowchart LR
 - **`deploy/caddy/Caddyfile`** — TLS (Let's Encrypt; DNS-01 through the Cloudflare API when a token is present), `/api/*` proxy with `flush_interval -1` for SSE, rate limits (300 req/min/IP, 30 SSE connections/min/IP, 1 KB body limit), security headers with a strict CSP, zstd/gzip, immutable caching for hashed assets, per-route Open Graph image rewrite, access logs with IPs masked to /24 // /48 and Cloudflare headers removed.
 - **`deploy/systemd/caddy.service`** — hardened unit (strict filesystem, no new privileges, syscall filter, only `CAP_NET_BIND_SERVICE`).
 - **`scripts/install/install-hashgram-io.sh`** — idempotent publisher: Node 22 + pnpm, `pnpm build`, sync and precompress `dist/`, install a Caddy build with the required modules, install config and unit, open only 80/443 in ufw, enable units, run `hashgramctl mainnet-preflight` and fail if it fails.
+- **`.github/workflows/deploy.yml`** — after successful `main` CI, fast-forward the production checkout over SSH, run the installer and verify the exact live commit through `/deployment.json`. Required environment secrets are documented in `web/README.md`.
 - **`docs/`** — a snapshot of the public Hashgram One, protocol, security and operations documentation from the main repository, rendered under `/docs`.
 
 ### The read API
@@ -225,7 +226,7 @@ pnpm test:e2e    # Playwright — every pixel of every route monochrome (dark + 
 pnpm lhci        # Lighthouse — performance ≥ 95, accessibility 100, best practices 100, SEO 100, CLS ≤ 0.02
 ```
 
-Current results: 103/103 Playwright checks (colour, accessibility, live behaviour and mobile layout) and 14/14 unit tests. The existing explorer routes retain their Lighthouse 100 / 100 / 100 / 100 baseline.
+Current results: 106/106 Playwright checks (colour, accessibility, live behaviour, mobile layout and responsive navigation) and 14/14 unit tests. The existing explorer routes retain their Lighthouse 100 / 100 / 100 / 100 baseline.
 
 ---
 

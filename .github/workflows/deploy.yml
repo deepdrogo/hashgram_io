@@ -1,0 +1,84 @@
+name: deploy
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: hashgram-io-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/home/hashgram_io' }}
+      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in DEPLOY_HOST DEPLOY_USER; do
+            [[ -n "${!name}" ]] || { echo "::error::$name is not configured"; exit 1; }
+          done
+          [[ -n "${{ secrets.DEPLOY_SSH_KEY }}" ]] || { echo "::error::DEPLOY_SSH_KEY is not configured"; exit 1; }
+          [[ -n "${{ secrets.DEPLOY_KNOWN_HOSTS }}" ]] || { echo "::error::DEPLOY_KNOWN_HOSTS is not configured"; exit 1; }
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 0700 ~/.ssh
+          printf '%s\n' '${{ secrets.DEPLOY_SSH_KEY }}' > ~/.ssh/id_ed25519
+          printf '%s\n' '${{ secrets.DEPLOY_KNOWN_HOSTS }}' > ~/.ssh/known_hosts
+          chmod 0600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: Publish verified revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash -s -- '$TARGET_SHA' '$DEPLOY_PATH'" <<'REMOTE'
+          set -euo pipefail
+          target_sha="$1"
+          deploy_path="$2"
+          cd "$deploy_path"
+          [[ -z "$(git status --porcelain)" ]] || {
+            echo "deployment checkout has uncommitted changes" >&2
+            exit 1
+          }
+          git fetch --prune origin main
+          git checkout main
+          git merge --ff-only "$target_sha"
+          [[ "$(git rev-parse HEAD)" == "$target_sha" ]] || {
+            echo "checkout does not match requested revision" >&2
+            exit 1
+          }
+          sudo ./scripts/install/install-hashgram-io.sh
+          REMOTE
+
+      - name: Verify live revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..12}; do
+            deployed="$(curl -fsS --max-time 10 https://hashgram.io/deployment.json | jq -r '.commit // empty')" || true
+            [[ "$deployed" == "$TARGET_SHA" ]] && exit 0
+            sleep 5
+          done
+          echo "::error::hashgram.io is not serving commit $TARGET_SHA"
+          exit 1

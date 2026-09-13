@@ -182,7 +182,7 @@ export default function Home() {
           <p class="mt-2 max-w-3xl text-sm leading-relaxed text-ink-500">
             Private application payloads travel inside MLS ciphertext; nodes store and relay what they cannot read. The chain holds only global facts such as identities, usernames, balances and provider records.
           </p>
-          <p class="mt-2 text-xs text-ink-500">Protocol, SDK and reference CLI implemented. Complete desktop UI is not released yet.</p>
+          <p class="mt-2 text-xs text-ink-500">Windows desktop v0.2.0 released: Mail, Drive, People, Feed, Circles, Spaces, Earn, Wallet and Network.</p>
         </div>
         <A href="/one" class="btn">Product overview →</A>
       </section>

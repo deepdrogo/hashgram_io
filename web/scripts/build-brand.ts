@@ -6,11 +6,12 @@
  */
 import { mkdirSync, writeFileSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { zipSync } from 'fflate';
 import { markSvg, wordmarkSvg, BLACK, WHITE } from './brand-lib.ts';
 
-const OUT = new URL('../public/brand/', import.meta.url).pathname;
+const OUT = fileURLToPath(new URL('../public/brand/', import.meta.url));
 mkdirSync(OUT, { recursive: true });
 
 const SIZES = [16, 32, 48, 64, 128, 180, 192, 256, 512, 1024];
@@ -90,7 +91,7 @@ async function main() {
     ],
   };
   put('palette.json', JSON.stringify(palette, null, 2) + '\n');
-  const readmePath = new URL('../brand/README.md', import.meta.url).pathname;
+  const readmePath = fileURLToPath(new URL('../brand/README.md', import.meta.url));
   try {
     put('README.md', readFileSync(readmePath, 'utf8'));
   } catch {
@@ -113,7 +114,7 @@ async function main() {
 
   // Site manifest
   writeFileSync(
-    new URL('../public/manifest.webmanifest', import.meta.url).pathname,
+    fileURLToPath(new URL('../public/manifest.webmanifest', import.meta.url)),
     JSON.stringify(
       {
         name: 'Hashgram',

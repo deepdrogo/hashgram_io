@@ -10,12 +10,14 @@ transformation required no consensus or tokenomics change.
 
 ## Can I download Hashgram One?
 
-Not as a complete desktop product yet. The application protocol, Rust SDK,
-reference CLI and the Mail/Drive/People/Feed/Circles/Spaces flows are
-implemented and tested, but the full Hashgram One desktop UI is still to be
-built. The old v0.1.1 desktop application is messenger-era software and is
-superseded. Use the [CLI quick start](https://github.com/deepdrogo/hashgram#quick-start)
-for the implemented interface.
+Yes. **Hashgram One for Windows v0.2.0** is the first complete desktop
+release: Mail, Drive, People, Feed, private Circles, role-based Spaces, Earn,
+Wallet, Network and Settings over the same Rust SDK as the reference CLI.
+Download the NSIS installer or MSI from
+[GitHub Releases](https://github.com/deepdrogo/hashgram_windows/releases/latest)
+and verify it against `SHA256SUMS.txt`. The v0.2.0 preview is protected by the
+project's signed updater but is not Authenticode-signed yet, so Windows
+SmartScreen may warn on first install.
 
 ## Can nodes read my mail or files?
 

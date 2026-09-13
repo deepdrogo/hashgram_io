@@ -58,14 +58,17 @@ export default function One() {
           Hashgram One is a private communication and storage platform built on Hashgram Mainnet. The chain and peer-to-peer swarm are infrastructure; people use Mail, Drive, People, Feed, Spaces, Earn, Wallet and Network.
         </p>
         <div class="mt-7 flex flex-wrap gap-3">
-          <A href="/docs/what-is-hashgram" class="btn btn-primary">Understand Hashgram</A>
+          <a href="https://github.com/deepdrogo/hashgram_windows/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+            Download for Windows <ExternalLink class="size-3.5" aria-hidden="true" />
+          </a>
+          <A href="/docs/what-is-hashgram" class="btn">Understand Hashgram</A>
           <A href="/docs/hashgram-one-architecture" class="btn">Read the architecture</A>
           <a href={`${GITHUB_URL}#quick-start`} target="_blank" rel="noopener noreferrer" class="btn">
             Use the CLI <ExternalLink class="size-3.5" aria-hidden="true" />
           </a>
         </div>
         <p class="mt-4 max-w-3xl text-xs leading-relaxed text-ink-500">
-          The protocol, Rust SDK and reference CLI are implemented. The complete Hashgram One desktop application is not released yet; the older v0.1.1 desktop app is superseded. This site does not offer a misleading download.
+          Hashgram One for Windows v0.2.0 is released with Mail, Drive, People, Feed, Circles, Spaces, Earn, Wallet, Network and Settings over the same Rust SDK. Native mobile clients remain planned.
         </p>
       </section>
 
@@ -129,11 +132,12 @@ export default function One() {
               <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Encrypted local store, device sync, backup, wallet and provider facades.</li>
               <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Mainnet chain, store/relay/media node, indexer and optional e-mail gateway.</li>
               <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> End-to-end acceptance coverage over the same HashgramOne facade clients use.</li>
+              <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Hashgram One for Windows v0.2.0: the complete Mail, Drive, People, Feed, Circles, Spaces, Earn, Wallet and Network UI.</li>
             </ul>
           </Card>
-          <Card title="Not released or not built">
+          <Card title="Still planned or incomplete">
             <ul class="space-y-3 text-sm text-ink-500">
-              <li>• Complete Hashgram One desktop UI and mobile clients.</li>
+              <li>• Native mobile clients; Windows is the first complete desktop release.</li>
               <li>• Push notifications, group-call E2EE and a Merkle light client.</li>
               <li>• Provider-side long-term storage lease wire flow and escrow market.</li>
               <li>• Automatic gas funding for new identities; welcome rewards are disabled until an attestor exists.</li>
@@ -151,7 +155,10 @@ export default function One() {
           <h2 class="text-xl font-semibold">See the infrastructure underneath.</h2>
           <p class="mt-1 max-w-2xl text-sm text-ink-500">hashgram.io remains the official read-only explorer: live blocks, validators, supply, providers, rewards and governance from this server’s own full node.</p>
         </div>
-        <A href="/blocks" class="btn shrink-0">Open explorer</A>
+        <div class="flex shrink-0 flex-wrap gap-2">
+          <a href="https://github.com/deepdrogo/hashgram_windows/releases/latest" class="btn btn-primary">Download for Windows</a>
+          <A href="/blocks" class="btn">Open explorer</A>
+        </div>
       </section>
     </div>
   );

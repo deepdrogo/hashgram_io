@@ -23,10 +23,14 @@ menu go deeper.
 - **Earn, Wallet and Network** expose the one HASH asset, staking, providers
   and the network through interchangeable nodes.
 
-The protocol, Rust SDK and reference CLI implement these flows today. The
-complete Hashgram One desktop UI is not released yet; the older v0.1.1
-messenger-era desktop is superseded. See the [product overview](/one) and
-[architecture](/docs/hashgram-one-architecture).
+The protocol, Rust SDK and reference CLI implement these flows today.
+**Hashgram One for Windows v0.2.0 is also released**, with Mail, Drive,
+People, Feed, private Circles, role-based Spaces, Earn, Wallet, Network and
+Settings over the same SDK. Download the current installer and verify its
+published checksum on
+[GitHub Releases](https://github.com/deepdrogo/hashgram_windows/releases/latest).
+See the [product overview](/one), [architecture](/docs/hashgram-one-architecture)
+and [desktop source](https://github.com/deepdrogo/hashgram_windows).
 
 ## The token
 

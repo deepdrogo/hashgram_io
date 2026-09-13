@@ -5,10 +5,11 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { markGroup, textPath, wrap, interFont, monoFont, WHITE } from './brand-lib.ts';
 
-const OUT = new URL('../public/og/', import.meta.url).pathname;
+const OUT = fileURLToPath(new URL('../public/og/', import.meta.url));
 mkdirSync(OUT, { recursive: true });
 
 const W = 1200;

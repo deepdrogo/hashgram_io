@@ -9,6 +9,7 @@
  */
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { join, basename, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
@@ -23,7 +24,7 @@ import type { Root as HastRoot, Element } from 'hast';
 import type { Root as MdRoot } from 'mdast';
 import GithubSlugger from 'github-slugger';
 
-const WEB = resolve(new URL('..', import.meta.url).pathname);
+const WEB = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DOCS_DIR = process.env.DOCS_DIR ? resolve(process.env.DOCS_DIR) : resolve(WEB, '../docs');
 const CONTENT_DIR = join(WEB, 'content');
 const OUT_INDEX = join(WEB, 'src/generated/docs-index.json');

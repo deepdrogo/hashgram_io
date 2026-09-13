@@ -6,9 +6,10 @@
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ALLOWED = new Set(['#000000', '#0d0d0d', '#1a1a1a', '#262626', '#404040', '#808080', '#ffffff', '#000', '#fff']);
-const ROOT = new URL('..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SCAN = ['src', 'index.html', 'public/brand', 'public/manifest.webmanifest'];
 const EXT = new Set(['.ts', '.tsx', '.css', '.html', '.svg', '.json', '.webmanifest']);
 

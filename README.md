@@ -42,7 +42,7 @@ Underneath it is Hashgram Mainnet: a Cosmos SDK / CometBFT Layer-1 (`hashgram-1`
 ### Hashgram One today
 
 - **Implemented:** HashMail, HashDrive, People, Feed, Circles, Spaces, device sync, encrypted local store, backup, wallet/provider/network SDK surfaces and reference CLI.
-- **Desktop released:** [Hashgram One for Windows v0.2.0](https://github.com/deepdrogo/hashgram_windows/releases/tag/v0.2.0) ships the complete Mail, Drive, People, Feed, Circles, Spaces, Earn, Wallet, Network and Settings UI over that SDK.
+- **Desktop released:** [Hashgram One for Windows v0.2.1](https://github.com/deepdrogo/hashgram_windows/releases/tag/v0.2.1) ships the complete Mail, Drive, People, Feed, Circles, Spaces, Earn, Wallet, Network and Settings UI, automatic P2P recovery and actionable device setup over that SDK.
 - **Mainnet unchanged:** the application transformation made no consensus or tokenomics change; older Mainnet nodes remain interoperable.
 - **Still planned or incomplete:** native mobile clients, push notifications, group-call E2EE, a Merkle light client and the provider-side long-term storage lease wire flow.
 
@@ -62,7 +62,7 @@ See [the product overview](https://hashgram.io/one), [architecture](https://hash
 </table>
 
 The images are rendered from the application's built-in development data shim,
-so they show the real v0.2.0 interface without exposing a real identity,
+so they show the real v0.2.1 interface without exposing a real identity,
 message, wallet or credential.
 [Product README](https://github.com/deepdrogo/hashgram_windows) ·
 [Latest release](https://github.com/deepdrogo/hashgram_windows/releases/latest)

@@ -24,7 +24,7 @@ menu go deeper.
   and the network through interchangeable nodes.
 
 The protocol, Rust SDK and reference CLI implement these flows today.
-**Hashgram One for Windows v0.2.0 is also released**, with Mail, Drive,
+**Hashgram One for Windows v0.2.1 is also released**, with Mail, Drive,
 People, Feed, private Circles, role-based Spaces, Earn, Wallet, Network and
 Settings over the same SDK. Download the current installer and verify its
 published checksum on

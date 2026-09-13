@@ -10,12 +10,12 @@ transformation required no consensus or tokenomics change.
 
 ## Can I download Hashgram One?
 
-Yes. **Hashgram One for Windows v0.2.1** is the current desktop
+Yes. **Hashgram One for Windows v0.2.2** is the current desktop
 release: Mail, Drive, People, Feed, private Circles, role-based Spaces, Earn,
 Wallet, Network and Settings over the same Rust SDK as the reference CLI.
 Download the NSIS installer or MSI from
 [GitHub Releases](https://github.com/deepdrogo/hashgram_windows/releases/latest)
-and verify it against `SHA256SUMS.txt`. The v0.2.1 preview is protected by the
+and verify it against `SHA256SUMS.txt`. The v0.2.2 preview is protected by the
 project's signed updater but is not Authenticode-signed yet, so Windows
 SmartScreen may warn on first install.
 

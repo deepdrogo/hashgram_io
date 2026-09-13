@@ -68,7 +68,7 @@ export default function One() {
           </a>
         </div>
         <p class="mt-4 max-w-3xl text-xs leading-relaxed text-ink-500">
-          Hashgram One for Windows v0.2.1 is released with the complete workspace, automatic P2P recovery after an outage and guided on-chain device setup over the same Rust SDK. Native mobile clients remain planned.
+          Hashgram One for Windows v0.2.2 is released with the complete workspace, guided on-chain device setup and recovery from half-open or zombie P2P connections over the same Rust SDK. Native mobile clients remain planned.
         </p>
       </section>
 
@@ -132,7 +132,7 @@ export default function One() {
               <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Encrypted local store, device sync, backup, wallet and provider facades.</li>
               <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Mainnet chain, store/relay/media node, indexer and optional e-mail gateway.</li>
               <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> End-to-end acceptance coverage over the same HashgramOne facade clients use.</li>
-              <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Hashgram One for Windows v0.2.1: complete UI, automatic P2P recovery, guided device registration and safe local-vault sign out.</li>
+              <li class="flex gap-2"><ShieldCheck class="mt-0.5 size-4 shrink-0" aria-hidden="true" /> Hashgram One for Windows v0.2.2: complete UI, zombie-peer recovery, guided device registration and safe local-vault sign out.</li>
             </ul>
           </Card>
           <Card title="Still planned or incomplete">

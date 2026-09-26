@@ -85,5 +85,5 @@ export function usePaged<T>(path: Accessor<string>, params: Accessor<Record<stri
 }
 
 export function setTitle(title?: string) {
-  document.title = title ? `${title} — Hashgram` : 'Hashgram One — private mail, storage and shared spaces';
+  document.title = title ? `${title} — Hashgram` : 'Hashgram One — social feed, encrypted chats, mail, storage and wallet';
 }

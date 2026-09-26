@@ -33,7 +33,7 @@
 
 ## What this is
 
-**Hashgram One** is a private communication and storage platform: Mail, Drive, People, Feed, Spaces, Earn, Wallet and Network over one identity. Native application payloads travel inside MLS ciphertext; nodes store and relay what they cannot read. The chain holds only global-consensus facts such as identity keys, usernames, balances, providers and governance.
+**Hashgram One** is the desktop application on Hashgram Mainnet: Pulse (a chronological social feed), Reels, Local, Topics, Stories, MLS-encrypted Chats, Mail, Drive, Spaces, Contacts, profiles with an on-chain verified badge, Wallet, Earn and Network over one identity. Private payloads travel inside MLS ciphertext; nodes store and relay what they cannot read. Public posts are signed by their authors. The chain holds only global-consensus facts such as identity keys, usernames, balances, providers and governance.
 
 Underneath it is Hashgram Mainnet: a Cosmos SDK / CometBFT Layer-1 (`hashgram-1`, launched 10 September 2026) with a fixed supply of 1,000,000,000 HASH, useful-service rewards instead of mining and a hard-capped 1 % founder share of protocol fee revenue.
 
@@ -41,31 +41,12 @@ Underneath it is Hashgram Mainnet: a Cosmos SDK / CometBFT Layer-1 (`hashgram-1`
 
 ### Hashgram One today
 
-- **Implemented:** HashMail, HashDrive, People, Feed, Circles, Spaces, device sync, encrypted local store, backup, wallet/provider/network SDK surfaces and reference CLI.
-- **Desktop released:** [Hashgram One for Windows v0.2.2](https://github.com/deepdrogo/hashgram_windows/releases/tag/v0.2.2) ships the complete workspace, actionable device setup and automatic recovery from half-open or zombie P2P connections over that SDK.
+- **Released for Windows** as a public demo preview from [deepdrogo/hashgram_windows](https://github.com/deepdrogo/hashgram_windows). This site never hard-codes a version: it links to [hashgram.org/download](https://hashgram.org/download) and to GitHub's `releases/latest`, which always resolve to the newest tagged build.
+- **Implemented:** Pulse, Stories, Reels, Local, Topics, Chats (MLS 1:1 and groups with media), HashMail, HashDrive, public and closed Spaces, Contacts and Circles, verified badge, Wallet with transaction explorer, Earn with a supervised node, Network diagnostics, device sync, encrypted local store and reference CLI.
 - **Mainnet unchanged:** the application transformation made no consensus or tokenomics change; older Mainnet nodes remain interoperable.
-- **Still planned or incomplete:** native mobile clients, push notifications, group-call E2EE, a Merkle light client and the provider-side long-term storage lease wire flow.
+- **Known limits:** one bonded validator, follower counts need an indexer, best-effort replication, minimal stories, no calling UI (protocol only) and an installer without Authenticode signing.
 
 See [the product overview](https://hashgram.io/one), [architecture](https://hashgram.io/docs/hashgram-one-architecture), [HashMail](https://hashgram.io/docs/hashmail) and [HashDrive](https://hashgram.io/docs/hashdrive).
-
-### Hashgram One for Windows
-
-<table>
-<tr>
-<td width="50%"><img src="assets/desktop/mail.png" alt="Hashgram One Mail"><br><b>Mail</b> — encrypted inbox, Requests, labels, attachments and local drafts.</td>
-<td width="50%"><img src="assets/desktop/drive.png" alt="Hashgram One Drive"><br><b>Drive</b> — encrypted files, versions and snapshot/live sharing.</td>
-</tr>
-<tr>
-<td><img src="assets/desktop/wallet.png" alt="Hashgram One Wallet"><br><b>Wallet</b> — HASH, staking, usernames, devices and founder transparency.</td>
-<td><img src="assets/desktop/network.png" alt="Hashgram One Network"><br><b>Network</b> — peer verification, pinned genesis, supply and diagnostics.</td>
-</tr>
-</table>
-
-The images are rendered from the application's built-in development data shim,
-so they show the real v0.2.2 interface without exposing a real identity,
-message, wallet or credential.
-[Product README](https://github.com/deepdrogo/hashgram_windows) ·
-[Latest release](https://github.com/deepdrogo/hashgram_windows/releases/latest)
 
 ### Principles
 

@@ -95,7 +95,7 @@ export default function Home() {
             <span class="text-4xl font-bold tracking-tight sm:text-5xl">hashgram</span>
           </div>
           <p class="max-w-2xl text-lg text-ink-500">
-            One identity, inbox and vault on a network nobody centrally controls. Hashgram One brings private mail, encrypted storage, people, feeds and shared spaces to a fixed-supply Layer-1.
+            One identity, feed, inbox and vault on a network nobody centrally controls. Hashgram One brings a chronological social network, encrypted chats and mail, stories, encrypted storage, shared spaces and a wallet to a fixed-supply Layer-1.
           </p>
           <div class="mt-5 flex flex-wrap gap-2">
             <A href="/one" class="btn btn-primary">Explore Hashgram One</A>
@@ -174,17 +174,24 @@ export default function Home() {
         <div>
           <div class="mb-2 flex flex-wrap gap-2">
             <Badge variant="solid">Hashgram One</Badge>
+            <Badge variant="muted">Pulse</Badge>
+            <Badge variant="muted">Chats</Badge>
+            <Badge variant="muted">Stories</Badge>
             <Badge variant="muted">Mail</Badge>
             <Badge variant="muted">Drive</Badge>
             <Badge variant="muted">Spaces</Badge>
+            <Badge variant="muted">Wallet</Badge>
           </div>
           <h2 class="text-xl font-semibold tracking-tight">The chain is infrastructure. Hashgram One is the product.</h2>
           <p class="mt-2 max-w-3xl text-sm leading-relaxed text-ink-500">
-            Private application payloads travel inside MLS ciphertext; nodes store and relay what they cannot read. The chain holds only global facts such as identities, usernames, balances and provider records.
+            A social feed with no ranking algorithm, MLS-encrypted chats and mail, stories, encrypted files and private Spaces — fourteen surfaces behind one identity. Nodes store and relay what they cannot read; the chain holds only global facts such as identities, usernames, balances and provider records.
           </p>
-          <p class="mt-2 text-xs text-ink-500">Windows desktop v0.2.2 released: complete workspace, guided device setup and recovery from half-open P2P connections.</p>
+          <p class="mt-2 text-xs text-ink-500">Available for Windows as a public demo preview. The download always resolves to the latest GitHub release.</p>
         </div>
-        <A href="/one" class="btn">Product overview →</A>
+        <div class="flex flex-col gap-2 sm:flex-row lg:flex-col">
+          <a href="https://hashgram.org/download" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Download for Windows</a>
+          <A href="/one" class="btn">Product overview →</A>
+        </div>
       </section>
 
       <section class="mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Key statistics">

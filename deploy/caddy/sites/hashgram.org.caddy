@@ -26,6 +26,7 @@ hashgram.org {
 	@metadata path / /index.html /robots.txt /sitemap.xml
 	header @metadata Cache-Control "public, max-age=0, must-revalidate"
 
+	try_files {path} /index.html
 	file_server
 
 	log {

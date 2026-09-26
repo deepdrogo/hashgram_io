@@ -2,22 +2,53 @@
 
 ## What changed?
 
-Hashgram is no longer framed as a social network with a blockchain attached.
-**Hashgram One** is a private communication and storage platform: Mail,
-Drive, People, Feed, Spaces, Earn, Wallet and Network over one identity. The
-existing Mainnet chain and libp2p swarm remain the infrastructure; this
-transformation required no consensus or tokenomics change.
+**Hashgram One** grew from a private communication and storage workspace
+into a full desktop application: Pulse (a chronological social feed), Reels,
+Local, Topics, Stories, MLS-encrypted Chats, Mail, Drive, Spaces, Contacts,
+profiles with an on-chain verified badge, Wallet, Earn and Network — all over
+one identity. The existing Mainnet chain and libp2p swarm remain the
+infrastructure; none of this required a consensus or tokenomics change.
 
 ## Can I download Hashgram One?
 
-Yes. **Hashgram One for Windows v0.2.2** is the current desktop
-release: Mail, Drive, People, Feed, private Circles, role-based Spaces, Earn,
-Wallet, Network and Settings over the same Rust SDK as the reference CLI.
-Download the NSIS installer or MSI from
-[GitHub Releases](https://github.com/deepdrogo/hashgram_windows/releases/latest)
-and verify it against `SHA256SUMS.txt`. The v0.2.2 preview is protected by the
-project's signed updater but is not Authenticode-signed yet, so Windows
-SmartScreen may warn on first install.
+Yes, for 64-bit Windows 10/11. Download it from
+[hashgram.org/download](https://hashgram.org/download) or the
+[latest GitHub release](https://github.com/deepdrogo/hashgram_windows/releases/latest);
+both always point at the newest tagged build, and the app updates itself with
+minisign-verified packages. It is a public demo preview under active
+development, and the installer is not Authenticode-signed yet, so Windows
+SmartScreen may warn on first run — compare the SHA-256 with `SHA256SUMS.txt`
+from the release. macOS, Linux, iOS and Android are not released.
+
+## Is there a ranking algorithm in the feed?
+
+No. Pulse shows Latest, Following and Topics in the order things happened,
+Reels shows public video newest-first, and a test in the desktop repository
+fails the build if ranking code appears. What you see is what was signed,
+in the order it was signed.
+
+## Can nodes read my chats?
+
+No. Chats are one-to-one or group MLS conversations (RFC 9420) with forward
+secrecy and post-compromise security. Pictures, video and files travel in
+the same encrypted channel. A store node holds envelopes it cannot open and
+learns only mailbox id, size and time.
+
+## Do stories really disappear?
+
+Expiry is a display rule, not deletion. After the signed `expires_at`
+(24 hours by default, 48 at most) Pulse, profiles and indexers stop showing
+a story, but nodes that accepted the event keep it until their ordinary
+retention sweep and the media blob has no expiry at all. The composer says
+this before you post. Something that must never be seen again belongs in a
+Chat, not in a story. See the [Stories specification](/docs/stories).
+
+## What is the verified badge?
+
+A profile shows a verified badge when its address has paid 100,000 HASH to
+the governance module account with the memo `verify:<address>`. Every reader
+re-checks that transaction on chain; nobody grants the badge and nobody can
+take it away. It proves willingness to pay in public, not identity.
 
 ## Can nodes read my mail or files?
 

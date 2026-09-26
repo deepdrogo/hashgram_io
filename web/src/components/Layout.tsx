@@ -250,7 +250,7 @@ export function Layout(props: ParentProps) {
         <div class="mx-auto grid max-w-7xl gap-6 px-4 py-8 text-sm text-ink-500 md:grid-cols-3">
           <div>
             <Wordmark height={16} class="text-white" />
-            <p class="mt-2 max-w-xs text-xs">Hashgram One is private mail, storage and shared spaces on Hashgram Mainnet. This site is its live explorer, network dashboard and documentation.</p>
+            <p class="mt-2 max-w-xs text-xs">Hashgram One is a chronological social network, encrypted chats and mail, storage, shared spaces and a wallet on Hashgram Mainnet. This site is its live explorer, network dashboard and documentation.</p>
             <p class="mt-2 max-w-xs text-xs">The protocol, chain, node, SDK and indexer are open source at <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="text-white hover:underline">github.com/deepdrogo/hashgram</a>.</p>
           </div>
           <div class="text-xs">
@@ -267,6 +267,9 @@ export function Layout(props: ParentProps) {
             <A href="/one" class="inline-block py-1 hover:text-white">
               Hashgram One
             </A>
+            <a href="https://hashgram.org/download" target="_blank" rel="noopener noreferrer" class="inline-block py-1 hover:text-white">
+              Download for Windows (hashgram.org)
+            </a>
             <A href="/status" class="inline-block py-1 hover:text-white">
               Status
             </A>

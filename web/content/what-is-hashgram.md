@@ -1,8 +1,9 @@
 # What is Hashgram
 
-Hashgram One is a private communication and storage platform. **Mail, Drive,
-People, Feed, Spaces, Earn, Wallet and Network** are the product; a public
-blockchain and a peer-to-peer swarm are the infrastructure underneath it.
+Hashgram One is a desktop application for a private digital life. **Pulse,
+Reels, Local, Chats, Mail, Drive, Spaces, Contacts, Wallet, Earn and
+Network** are the product; a public blockchain and a peer-to-peer swarm are
+the infrastructure underneath it.
 
 This page explains it in plain language. The technical documents in the left
 menu go deeper.
@@ -16,21 +17,38 @@ menu go deeper.
 - **HashDrive** encrypts files on your device in authenticated segments.
   It supports folders, versions, trash and capability-based snapshot or live
   sharing without making a file public.
-- **People and Feed** combine on-chain identity discovery with private local
-  relationship state, public signed chronological posts and private Circles.
+- **Pulse** is the social home: Latest, Following and Topics in strict
+  chronological order, with photos, video, polls, comments, reactions and
+  reposts, each signed by its author. There is no ranking algorithm anywhere
+  in the application — a test fails the build if one appears.
+- **Chats** are one-to-one and group conversations over MLS, with pictures,
+  video and files. "Sent" means a store node accepted the envelope; nothing
+  claims the other person read it.
+- **Stories** show a picture or video for 24 hours (at most 48). The author
+  signs the expiry; expiry is a display rule, not deletion, and the composer
+  says so before you post.
+- **Reels, Local and Topics** show the network's public video newest-first,
+  posts from one self-declared country, and open channels anyone can post on.
+- **Profiles** carry a cover, avatar, `@username`, bio, website and country.
+  A verified badge is a public 100,000 HASH payment to the governance pool
+  that every reader re-checks on chain; nobody grants it and nobody can
+  revoke it.
 - **Spaces** are private environments for families, teams and projects, with
-  roles, group mail, posts, announcements and a shared Drive.
-- **Earn, Wallet and Network** expose the one HASH asset, staking, providers
-  and the network through interchangeable nodes.
+  roles, chat, group mail, posts, announcements and a shared Drive. Spaces
+  that choose to be found appear in a public Discover listing; their content
+  stays encrypted.
+- **Contacts and Circles** combine on-chain identity discovery with private
+  local relationship state and private Circle posts.
+- **Wallet, Earn and Network** expose the one HASH asset, a transaction
+  explorer, staking, a node you can run from the desktop, and the network
+  through interchangeable nodes.
 
-The protocol, Rust SDK and reference CLI implement these flows today.
-**Hashgram One for Windows v0.2.2 is also released**, with Mail, Drive,
-People, Feed, private Circles, role-based Spaces, Earn, Wallet, Network and
-Settings over the same SDK. Download the current installer and verify its
-published checksum on
-[GitHub Releases](https://github.com/deepdrogo/hashgram_windows/releases/latest).
-See the [product overview](/one), [architecture](/docs/hashgram-one-architecture)
-and [desktop source](https://github.com/deepdrogo/hashgram_windows).
+Hashgram One ships for Windows as a public demo preview; the download on
+[hashgram.org](https://hashgram.org/download) always resolves to the newest
+release of [`deepdrogo/hashgram_windows`](https://github.com/deepdrogo/hashgram_windows).
+Voice and video calls exist at the protocol level but have no desktop
+interface yet. See the [product overview](/one) and
+[architecture](/docs/hashgram-one-architecture).
 
 ## The token
 
